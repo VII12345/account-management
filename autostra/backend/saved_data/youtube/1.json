@@ -1,0 +1,64 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "type": "input",
+      "data": {
+        "label": "Start"
+      },
+      "position": {
+        "x": 297.0,
+        "y": -134.0
+      }
+    },
+    {
+      "id": "1",
+      "type": "input",
+      "data": {
+        "label": "Start YouTube",
+        "nodeType": "start"
+      },
+      "position": {
+        "x": 297.0,
+        "y": -134.0
+      }
+    },
+    {
+      "id": "node_104",
+      "type": "default",
+      "data": {
+        "label": "⏳ 等待时间",
+        "nodeType": "wait"
+      },
+      "position": {
+        "x": 599.20241991997,
+        "y": -49.42414761879081
+      }
+    },
+    {
+      "id": "node_108",
+      "type": "default",
+      "data": {
+        "label": "🔔 订阅频道",
+        "nodeType": "youtube_interact"
+      },
+      "position": {
+        "x": 400.20241991997,
+        "y": 84.57585238120919
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "1",
+      "target": "node_104",
+      "id": "reactflow__edge-1-node_104"
+    },
+    {
+      "source": "node_104",
+      "target": "node_108",
+      "id": "reactflow__edge-node_104-node_108"
+    }
+  ],
+  "cdp_url": ""
+}

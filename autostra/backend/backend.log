@@ -1,0 +1,20 @@
+nohup: ignoring input
+INFO:     Started server process [1310]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:53610 - "OPTIONS /run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53610 - "POST /run HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64148 - "HEAD /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63907 - "POST /run HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:53287 - "POST /run HTTP/1.1" 422 Unprocessable Content
+--- 开始任务，尝试连接浏览器: http://127.0.0.1:9222 ---
+执行错误: BrowserType.connect_over_cdp: WebSocket error: socket hang up
+Call log:
+  - <ws preparing> retrieving websocket url from http://127.0.0.1:9222
+  - <ws connecting> ws://127.0.0.1:10808/devtools/browser/8b7f079e-a596-482b-ad8e-f89c891fdd05
+  - <ws error> ws://127.0.0.1:10808/devtools/browser/8b7f079e-a596-482b-ad8e-f89c891fdd05 error socket hang up
+  - <ws connect error> ws://127.0.0.1:10808/devtools/browser/8b7f079e-a596-482b-ad8e-f89c891fdd05 socket hang up
+  - <ws disconnected> ws://127.0.0.1:10808/devtools/browser/8b7f079e-a596-482b-ad8e-f89c891fdd05 code=1006 reason=
+
+INFO:     127.0.0.1:62441 - "POST /run HTTP/1.1" 200 OK

@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "type": "input",
+      "data": {
+        "label": "Start"
+      },
+      "position": {
+        "x": 5.5,
+        "y": -138.5
+      }
+    },
+    {
+      "id": "node_101",
+      "type": "default",
+      "data": {
+        "label": "🔑 登录账号",
+        "nodeType": "login_x"
+      },
+      "position": {
+        "x": -11.5,
+        "y": 99.0
+      }
+    },
+    {
+      "id": "node_102",
+      "type": "default",
+      "data": {
+        "label": "🔄 循环 3 次",
+        "nodeType": "loop_start",
+        "loop_count": "3"
+      },
+      "position": {
+        "x": 198.0,
+        "y": -21.5
+      }
+    },
+    {
+      "id": "1",
+      "type": "input",
+      "data": {
+        "label": "Start X (Twitter)",
+        "nodeType": "start"
+      },
+      "position": {
+        "x": 5.5,
+        "y": -138.5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "1",
+      "target": "node_102",
+      "id": "e_1-node_102_0"
+    },
+    {
+      "source": "node_102",
+      "target": "node_101",
+      "id": "e_node_102-node_101_1"
+    },
+    {
+      "source": "node_101",
+      "target": "node_102",
+      "id": "e_node_101-node_102_2"
+    }
+  ],
+  "cdp_url": ""
+}
