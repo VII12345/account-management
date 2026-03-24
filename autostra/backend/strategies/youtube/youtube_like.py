@@ -1,5 +1,18 @@
 from ..base import BaseStrategy
 import asyncio
+from pathlib import Path
+from lib import HumanMouse
+
+_MODEL_PATH = Path(__file__).resolve().parents[2] / "mouse.onnx"
+_HUMAN_MOUSE = HumanMouse(
+    model_path=_MODEL_PATH,
+    steps=5,
+    min_delay=0,
+    max_delay=10,
+    speed_profile="ease-in-out",
+    delay_jitter=5,
+)
+
 
 class Strategy(BaseStrategy):
     async def run(self, page, params, logs):
@@ -10,62 +23,65 @@ class Strategy(BaseStrategy):
             logs.append("❌ [YouTube] 当前不在视频播放页，无法点赞。")
             return
 
-        # 2. 寻找点赞按钮 (JS 内部寻找)
-        # 寻找逻辑保持不变，因为之前的日志显示已经"✅ 已定位到点赞按钮"，说明找是对的
-        target_btn_handle = await page.evaluate_handle("""
-            () => {
-                // 策略 A: 找最新的 ViewModel 结构
-                const viewModelBtn = document.querySelector('like-button-view-model button');
-                if (viewModelBtn) return viewModelBtn;
+        # 2. 使用指定 XPath 定位点赞（不使用 JS）
+        like_xpath = '//*[@id="top-level-buttons-computed"]/segmented-like-dislike-button-view-model/yt-smartimation/div/div/like-button-view-model/toggle-button-view-model/button-view-model/button/yt-touch-feedback-shape/div[2]'
 
-                // 策略 B: 找特定图标
-                const icon = document.querySelector('yt-animated-icon[animated-icon-type="CUSTOM_LIKE"]');
-                if (icon) return icon.closest('button');
-
-                // 策略 C: 旧版 ID
-                const segmentBtn = document.querySelector('#segmented-like-button button');
-                if (segmentBtn) return segmentBtn;
-
-                return null;
-            }
-        """)
-
-        target_btn = target_btn_handle.as_element()
+        target_btn = None
+        try:
+            await page.wait_for_selector(f"xpath={like_xpath}", timeout=5000)
+            target_btn = await page.locator(
+                f"xpath={like_xpath}"
+            ).first.element_handle()
+        except Exception:
+            target_btn = None
 
         if target_btn:
             # 3. 检查状态
-            is_pressed = await target_btn.get_attribute("aria-pressed")
-            
+            is_pressed = None
+            try:
+                btn_locator = page.locator(f"xpath={like_xpath}/ancestor::button[1]")
+                if await btn_locator.count():
+                    is_pressed = await btn_locator.first.get_attribute("aria-pressed")
+            except Exception:
+                pass
+
             if is_pressed == "true":
                 logs.append("ℹ️ [YouTube] 检测到已经点过赞了，跳过。")
             else:
                 try:
-                    logs.append("-> 正在尝试强制点击...")
-                    
-                    # 1. 强制滚动到视图中心 (JS)
-                    # 这一步不会报错，浏览器会尽力滚
-                    await target_btn.evaluate("el => el.scrollIntoView({block: 'center', inline: 'center'})")
-                    
-                    # 2. 稍微等一下滚动动画
+                    logs.append("-> 正在使用 HumanMouse 点击...")
+
+                    # 1. 强制滚动到视图中心
+                    await target_btn.evaluate(
+                        "el => el.scrollIntoView({block: 'center', inline: 'center'})"
+                    )
                     await page.wait_for_timeout(1000)
-                    
-                    # 3. 强制点击 (JS)
-                    # 即使元素被遮挡、透明度为0、或者在视口外，JS click 都能触发事件
-                    await target_btn.evaluate("el => el.click()")
-                    
-                    logs.append("✅ [YouTube] 已发送点击指令")
-                    
-                    # 4. 验证结果
+
+                    # 2. HumanMouse 点击（使用 lib.py）
+                    await _HUMAN_MOUSE.click_element(page, target_btn)
+
+                    logs.append("✅ [YouTube] HumanMouse 点击完成")
+
+                    # 3. 验证结果
                     await page.wait_for_timeout(1500)
-                    new_state = await target_btn.get_attribute("aria-pressed")
+                    new_state = None
+                    try:
+                        btn_locator = page.locator(
+                            f"xpath={like_xpath}/ancestor::button[1]"
+                        )
+                        if await btn_locator.count():
+                            new_state = await btn_locator.first.get_attribute(
+                                "aria-pressed"
+                            )
+                    except Exception:
+                        pass
                     if new_state == "true":
                         logs.append("-> 状态确认：点赞成功 (图标变亮)")
                     else:
                         logs.append("⚠️ 警告：点击后状态未变，可能需要登录或网络延迟")
-                        
+
                 except Exception as e:
-                    # 如果连 JS 都报错，那说明元素在这一瞬间被销毁了
-                    logs.append(f"❌ JS执行异常: {e}")
+                    logs.append(f"❌ HumanMouse 执行异常: {e}")
         else:
             logs.append("❌ 未找到点赞按钮。")
 

@@ -36,28 +36,80 @@
       }
     },
     {
-      "id": "node_108",
+      "id": "node_100",
       "type": "default",
       "data": {
-        "label": "🔔 订阅频道",
-        "nodeType": "youtube_interact"
+        "label": "🔑 打开网站",
+        "nodeType": "youtube_login"
       },
       "position": {
-        "x": 400.20241991997,
-        "y": 84.57585238120919
+        "x": 562.7956450796139,
+        "y": 88.2879261906046
+      }
+    },
+    {
+      "id": "node_102",
+      "type": "default",
+      "data": {
+        "label": "🔔 观看视频",
+        "nodeType": "youtube_watch"
+      },
+      "position": {
+        "x": 627.4835043351529,
+        "y": 218.8965527415649
+      }
+    },
+    {
+      "id": "node_104",
+      "type": "default",
+      "data": {
+        "label": "🔔 视频点赞",
+        "nodeType": "youtube_like"
+      },
+      "position": {
+        "x": 520.4835043351529,
+        "y": 336.3965527415649
+      }
+    },
+    {
+      "id": "node_106",
+      "type": "default",
+      "data": {
+        "label": "👀 搜索视频: lulu",
+        "nodeType": "youtube_search",
+        "keyword": "lulu"
+      },
+      "position": {
+        "x": 851.686786952046,
+        "y": 180.22988068621535
       }
     }
   ],
   "edges": [
     {
-      "source": "1",
-      "target": "node_104",
-      "id": "reactflow__edge-1-node_104"
-    },
-    {
       "source": "node_104",
       "target": "node_108",
       "id": "reactflow__edge-node_104-node_108"
+    },
+    {
+      "source": "1",
+      "target": "node_100",
+      "id": "reactflow__edge-1-node_100"
+    },
+    {
+      "source": "node_102",
+      "target": "node_104",
+      "id": "reactflow__edge-node_102-node_104"
+    },
+    {
+      "source": "node_100",
+      "target": "node_106",
+      "id": "reactflow__edge-node_100-node_106"
+    },
+    {
+      "source": "node_106",
+      "target": "node_102",
+      "id": "reactflow__edge-node_106-node_102"
     }
   ],
   "cdp_url": ""

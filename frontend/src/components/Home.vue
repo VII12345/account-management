@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 // 类型定义
@@ -39,6 +39,7 @@ const PLATFORMS = [
 const platformAccount = ref<string>('')
 const recommendedStrategies = ref<StrategyItem[]>([])
 const loadingStrategies = ref<boolean>(false)
+const currentDateText = ref<string>('')
 
 // 任务统计
 const taskStats: TaskStats = {
@@ -107,9 +108,28 @@ const fetchStrategies = async () => {
   }
 }
 
+const updateCurrentDate = (): void => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  currentDateText.value = `${year}年${month}月${day}日 ${weekdays[now.getDay()]}`
+}
+
+let dateTimer: number | undefined
+
 // 组件挂载时获取策略
 onMounted(() => {
   fetchStrategies()
+  updateCurrentDate()
+  dateTimer = window.setInterval(updateCurrentDate, 60 * 1000)
+})
+
+onBeforeUnmount(() => {
+  if (dateTimer !== undefined) {
+    window.clearInterval(dateTimer)
+  }
 })
 
 // 方法
@@ -153,7 +173,7 @@ const refreshStrategies = (): void => {
           欢迎使用 <span class="welcome-subtitle">账号培育与管理系统</span>
         </h2>
         <div class="stats-container">
-          <span class="date-text">2025年8月18日 星期一</span>
+          <span class="date-text">{{ currentDateText }}</span>
           <div class="stat-item">
             <span class="stat-label">任务总数</span>
             <span class="stat-value stat-blue">{{ taskStats.total }}</span>
@@ -338,12 +358,12 @@ background-size: cover;
 .welcome-title {
   font-size: 1.875rem;
   font-weight: bold;
-  color: #1f2937;
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: 1rem;
 }
 
 .welcome-subtitle {
-  color: #374151;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .stats-container {
@@ -354,7 +374,7 @@ background-size: cover;
 }
 
 .date-text {
-  color: #4b5563;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .stat-item {
@@ -364,7 +384,7 @@ background-size: cover;
 }
 
 .stat-label {
-  color: #4b5563;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .stat-value {

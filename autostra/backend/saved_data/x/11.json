@@ -47,6 +47,18 @@
         "x": 5.5,
         "y": -138.5
       }
+    },
+    {
+      "id": "node_108",
+      "type": "default",
+      "data": {
+        "label": "🔁 随机转发",
+        "nodeType": "zhuan_x"
+      },
+      "position": {
+        "x": 3.6666641235351562,
+        "y": -16.0
+      }
     }
   ],
   "edges": [
@@ -64,6 +76,11 @@
       "source": "node_101",
       "target": "node_102",
       "id": "e_node_101-node_102_2"
+    },
+    {
+      "source": "1",
+      "target": "node_108",
+      "id": "reactflow__edge-1-node_108"
     }
   ],
   "cdp_url": ""

@@ -1,5 +1,10 @@
 from ..base import BaseStrategy
 import asyncio
+from pathlib import Path
+from lib import HumanMouse
+
+_MODEL_PATH = Path(__file__).resolve().parents[2] / "mouse.onnx"
+_HUMAN_MOUSE = HumanMouse(model_path=_MODEL_PATH)
 
 class Strategy(BaseStrategy):
     async def run(self, page, params, logs):
@@ -14,8 +19,10 @@ class Strategy(BaseStrategy):
         try:
             consent_btn = page.locator('button[aria-label="Accept all"]')
             if await consent_btn.is_visible():
-                await consent_btn.click()
-                logs.append("-> [YouTube] 已处理 Cookie 同意弹窗")
+                element = await consent_btn.element_handle()
+                if element:
+                    await _HUMAN_MOUSE.click_element(page, element)
+                    logs.append("-> [YouTube] 已处理 Cookie 同意弹窗")
         except:
             pass
 

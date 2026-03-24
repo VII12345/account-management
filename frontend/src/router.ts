@@ -5,7 +5,8 @@ import AccountCenter from './components/AccountCenter.vue'
 import CultivationLayout from './components/CultivationCenter/Layout.vue'
 import DailyTraining from './components/CultivationCenter/DailyTraining.vue'
 import VirtualHumanManage from './components/CultivationCenter/VirtualHumanManage.vue'
-import TaskCenter from './components/TaskCenter.vue'
+import TaskCenter from './components/TaskCenter/TaskCenter.vue'
+import TaskDetail from './components/TaskCenter/Detail.vue'
 import RpaIframe from './components/Strategies/RpaIframe.vue'
 import OpsLayout from './components/OpsCenter/Layout.vue'
 import ContainerDetail from './components/OpsCenter/ContainerDetail.vue'
@@ -40,6 +41,7 @@ const routes = [
     ],
   },
   { path: '/tasks', name: 'tasks', component: TaskCenter, meta: { requiresAuth: true } },
+  { path: '/task/detail/:id', name: 'task-detail', component: TaskDetail, meta: { requiresAuth: true } },
   { path: '/strategy', name: 'strategy', component: RpaIframe, meta: { requiresAuth: true } },
   {
     path: '/ops',

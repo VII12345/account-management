@@ -1,6 +1,7 @@
 <!-- TaskCenter.vue -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 类型定义
 interface TaskData {
@@ -15,6 +16,7 @@ interface TaskData {
   strategyName: string
   accountCount: number
   batchCount: number
+  container: string
 }
 
 interface ChartData {
@@ -29,81 +31,139 @@ interface StrategyRank {
 }
 
 // 状态
+const router = useRouter()
 const searchKeyword = ref<string>('')
 const selectedRows = ref<number[]>([])
+const isModalVisible = ref(false)
+const newTask = ref<Partial<TaskData>>({})
+
+// 过滤后的任务列表（根据搜索关键词动态过滤）
+const filteredTaskList = computed<TaskData[]>(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase()
+  if (!keyword) return taskList.value
+  return taskList.value.filter(task => 
+    task.name.toLowerCase().includes(keyword) ||
+    task.strategyName.toLowerCase().includes(keyword) ||
+    task.platform.toLowerCase().includes(keyword)
+  )
+})
 
 // 各平台任务数数据
-const platformTaskData: ChartData[] = [
-  { name: 'X(Twitter)', values: [270, 30, 240] },
-  { name: 'Tik Tok（Web）', values: [115, 15, 100] },
-  { name: 'YouTube', values: [45, 5, 40] }
-]
+const platformTaskData = computed<ChartData[]>(() => {
+  const platforms = [
+    { key: 'X', label: 'X (Twitter)' },
+    { key: 'TikTok', label: 'TikTok' },
+    { key: 'Instagram', label: 'Instagram' },
+    { key: 'Facebook', label: 'Facebook' },
+    { key: 'YouTube', label: 'YouTube' }
+  ]
+  return platforms.map(p => {
+    const tasks = filteredTaskList.value.filter(t => t.platform === p.key)
+    const total = tasks.length
+    const strategy = tasks.filter(t => t.type === '策略任务').length
+    const instruction = tasks.filter(t => t.type === '指令任务').length
+    return { name: p.label, values: [total, strategy, instruction] }
+  })
+})
 
 // 各容器任务数数据
-const containerTaskData: ChartData[] = [
-  { name: '指纹浏览器', values: [750, 50, 700] }
-]
+const containerTaskData = computed<ChartData[]>(() => {
+  const containers = ['指纹浏览器 (AdsPower)', '云手机 (Redfinger)', '自研云环境']
+  return containers.map(container => {
+    const tasks = filteredTaskList.value.filter(t => t.container === container)
+    const total = tasks.length
+    const strategy = tasks.filter(t => t.type === '策略任务').length
+    const instruction = tasks.filter(t => t.type === '指令任务').length
+    return { name: container, values: [total, strategy, instruction] }
+  })
+})
 
 // 策略排行
-const strategyRankings: StrategyRank[] = [
-  { rank: 1, name: 'x(推荐浏览-培育', count: 30 },
-  { rank: 2, name: 'fb_首页浏览-培育', count: 5 },
-  { rank: 3, name: 'ins_首页浏览-培育', count: 5 }
-]
+const strategyRankings = computed<StrategyRank[]>(() => {
+  const counts: Record<string, number> = {}
+  filteredTaskList.value.forEach(t => {
+    if (t.strategyName && t.strategyName !== '-') {
+      counts[t.strategyName] = (counts[t.strategyName] || 0) + 1
+    }
+  })
+  const sorted = Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5) // 仅展示前5名，使其成为真正的“排行”
+  return sorted.map((item, index) => ({ rank: index + 1, name: item.name, count: item.count }))
+})
 
 // 任务列表数据
 const taskList = ref<TaskData[]>([
   {
-    id: 1,
-    name: 'Instagram-主页...',
-    type: '指令任务',
-    status: '结束',
-    createTime: '2025-08-18 20:26:32',
-    isOfficial: '否',
-    platform: 'Instagram',
-    platformIcon: '📷',
-    strategyName: '-',
-    accountCount: 1,
-    batchCount: 1
+    id: 1001,
+    name: 'X-矩阵账号自动发文',
+    type: '策略任务',
+    status: '进行中',
+    createTime: '2026-03-18 08:30:00',
+    isOfficial: '是',
+    platform: 'X',
+    platformIcon: '✖️',
+    strategyName: 'X-日常发推维护',
+    accountCount: 150,
+    batchCount: 5,
+    container: '指纹浏览器 (AdsPower)'
   },
   {
-    id: 2,
-    name: 'Tik Tok(Web)-主...',
+    id: 1002,
+    name: 'TikTok-美区达人评论区截流',
     type: '指令任务',
-    status: '结束',
-    createTime: '2025-08-18 20:00:00',
+    status: '等待中',
+    createTime: '2026-03-18 09:15:22',
     isOfficial: '否',
     platform: 'TikTok',
     platformIcon: '🎵',
     strategyName: '-',
-    accountCount: 1,
-    batchCount: 1
+    accountCount: 80,
+    batchCount: 2,
+    container: '云手机 (Redfinger)'
   },
   {
-    id: 3,
-    name: 'X(Twitter)-主页...',
-    type: '指令任务',
+    id: 1003,
+    name: 'Instagram-瑜伽标签点赞关注',
+    type: '策略任务',
     status: '结束',
-    createTime: '2025-08-18 19:06:43',
-    isOfficial: '否',
-    platform: 'X',
-    platformIcon: '❌',
-    strategyName: '-',
-    accountCount: 1,
-    batchCount: 1
-  },
-  {
-    id: 4,
-    name: 'Instagram-主页...',
-    type: '指令任务',
-    status: '结束',
-    createTime: '2025-08-18 19:00:56',
-    isOfficial: '否',
+    createTime: '2026-03-17 14:20:10',
+    isOfficial: '是',
     platform: 'Instagram',
     platformIcon: '📷',
+    strategyName: 'Ins-精准粉引流',
+    accountCount: 200,
+    batchCount: 10,
+    container: '指纹浏览器 (AdsPower)'
+  },
+  {
+    id: 1004,
+    name: 'YouTube-新视频前排刷赞',
+    type: '指令任务',
+    status: '异常',
+    createTime: '2026-03-17 16:45:00',
+    isOfficial: '否',
+    platform: 'YouTube',
+    platformIcon: '▶️',
     strategyName: '-',
-    accountCount: 1,
-    batchCount: 1
+    accountCount: 50,
+    batchCount: 1,
+    container: '自研云环境'
+  },
+  {
+    id: 1005,
+    name: 'Facebook-加密货币群组营销',
+    type: '策略任务',
+    status: '进行中',
+    createTime: '2026-03-18 01:10:35',
+    isOfficial: '是',
+    platform: 'Facebook',
+    platformIcon: '📘',
+    strategyName: 'FB-群组定向推广',
+    accountCount: 120,
+    batchCount: 4,
+    container: '指纹浏览器 (AdsPower)'
   }
 ])
 
@@ -117,24 +177,107 @@ const handleRowSelect = (id: number): void => {
   }
 }
 
-const handleBatchSelect = (): void => {
-  console.log('批量取消')
+const handleView = (id: number): void => {
+  router.push(`/task/detail/${id}`) // 请根据实际 router 配置调整跳转路径
+}
+
+const handleBatchCancel = (): void => {
+  if (selectedRows.value.length === 0) {
+    alert('请先选择要取消的任务')
+    return
+  }
+  if (window.confirm(`确定要取消选中的 ${selectedRows.value.length} 个任务吗？`)) {
+    taskList.value.forEach(task => {
+      if (selectedRows.value.includes(task.id) && task.status !== '结束' && task.status !== '已取消') {
+        task.status = '已取消'
+      }
+    })
+    selectedRows.value = [] // 取消后清空选中状态
+  }
+}
+
+const handleCancelSingle = (task: TaskData): void => {
+  if (task.status === '结束' || task.status === '已取消') {
+    alert('当前状态无法取消该任务')
+    return
+  }
+  if (window.confirm(`确定要取消任务 "${task.name}" 吗？`)) {
+    task.status = '已取消'
+  }
 }
 
 const handleAddTask = (): void => {
-  console.log('添加任务')
+  newTask.value = {
+    name: '',
+    type: '策略任务',
+    platform: 'X',
+    strategyName: '',
+    accountCount: 1,
+    batchCount: 1,
+    container: '指纹浏览器 (AdsPower)'
+  }
+  isModalVisible.value = true
+}
+
+const handleSaveTask = (): void => {
+  if (!newTask.value.name) {
+    alert('请输入任务名称')
+    return
+  }
+  
+  const now = new Date()
+  const createTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+  const platformIcons: Record<string, string> = { 'X': '✖️', 'TikTok': '🎵', 'Instagram': '📷', 'Facebook': '📘', 'YouTube': '▶️' }
+  const newId = taskList.value.length > 0 ? Math.max(...taskList.value.map(t => t.id)) + 1 : 1001
+
+  taskList.value.unshift({
+    id: newId,
+    name: newTask.value.name,
+    type: newTask.value.type || '策略任务',
+    status: '等待中',
+    createTime,
+    isOfficial: '否',
+    platform: newTask.value.platform || 'X',
+    platformIcon: platformIcons[newTask.value.platform || 'X'] || '❓',
+    strategyName: newTask.value.strategyName || '-',
+    accountCount: newTask.value.accountCount || 1,
+    batchCount: newTask.value.batchCount || 1,
+    container: newTask.value.container || '指纹浏览器 (AdsPower)'
+  })
+  isModalVisible.value = false
+}
+
+const handleCancelTask = (): void => {
+  isModalVisible.value = false
 }
 
 const handleSearch = (): void => {
-  console.log('搜索:', searchKeyword.value)
+  // Vue computed 特性会自动监听 searchKeyword 并更新 filteredTaskList，此处仅作保留或供防抖处理
 }
 
 const getBarHeight = (value: number, maxValue: number): number => {
   return (value / maxValue) * 100
 }
 
-const maxPlatformValue = Math.max(...platformTaskData.flatMap(d => d.values))
-const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
+const getStatusClass = (status: string): string => {
+  switch (status) {
+    case '进行中': return 'status-running'
+    case '结束': return 'status-completed'
+    case '等待中': return 'status-waiting'
+    case '异常': return 'status-error'
+    case '已取消': return 'status-canceled'
+    default: return ''
+  }
+}
+
+const maxPlatformValue = computed(() => {
+  const max = Math.max(...platformTaskData.value.flatMap(d => d.values))
+  return max > 0 ? max : 1 // 防止全空时出现计算分母为 0 导致报错
+})
+const maxContainerValue = computed(() => {
+  const max = Math.max(...containerTaskData.value.flatMap(d => d.values))
+  return max > 0 ? max : 1
+})
 </script>
 
 <template>
@@ -242,11 +385,14 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
           </div>
         </div>
         <div class="ranking-list">
-          <div v-for="item in strategyRankings" :key="item.rank" class="ranking-item">
-            <div class="rank-badge">{{ item.rank }}</div>
-            <div class="rank-name">{{ item.name }}</div>
-            <div class="rank-count">{{ item.count }}</div>
-          </div>
+          <div v-if="strategyRankings.length === 0" class="no-data">暂无策略数据</div>
+          <template v-else>
+            <div v-for="item in strategyRankings" :key="item.rank" class="ranking-item">
+              <div class="rank-badge">{{ item.rank }}</div>
+              <div class="rank-name">{{ item.name }}</div>
+              <div class="rank-count">{{ item.count }}</div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -256,7 +402,7 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
       <div class="task-list-header">
         <h3 class="section-title">任务列表</h3>
         <div class="task-actions">
-          <button @click="handleBatchSelect" class="btn-secondary">批量取消</button>
+          <button @click="handleBatchCancel" class="btn-secondary">批量取消</button>
           <button @click="handleAddTask" class="btn-primary-dropdown">
             添加任务
             <svg class="dropdown-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,7 +450,7 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
             </tr>
           </thead>
           <tbody>
-            <tr v-for="task in taskList" :key="task.id">
+            <tr v-for="task in filteredTaskList" :key="task.id">
               <td>
                 <input
                   type="checkbox"
@@ -316,7 +462,9 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
               <td class="task-name">{{ task.name }}</td>
               <td>{{ task.type }}</td>
               <td>
-                <span class="status-badge status-completed">{{ task.status }}</span>
+                <span class="status-badge" :class="getStatusClass(task.status)">
+                  {{ task.status }}
+                </span>
               </td>
               <td class="time-cell">{{ task.createTime }}</td>
               <td>{{ task.isOfficial }}</td>
@@ -327,13 +475,59 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
               <td>{{ task.accountCount }}</td>
               <td>{{ task.batchCount }}</td>
               <td class="actions-cell">
-                <button class="action-link">查看</button>
+                <button class="action-link" @click="handleView(task.id)">查看</button>
                 <button class="action-link">分天查看</button>
-                <button class="action-link">取消</button>
+                <button class="action-link" @click="handleCancelSingle(task)">取消</button>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- 添加任务弹窗 -->
+    <div v-if="isModalVisible" class="modal-overlay" @click.self="handleCancelTask">
+      <div class="modal-content">
+        <h3>添加任务</h3>
+        <div class="form-group">
+          <label>任务名称：</label>
+          <input v-model="newTask.name" class="form-input" placeholder="请输入任务名称" />
+          
+          <label>任务类型：</label>
+          <select v-model="newTask.type" class="form-input">
+            <option value="策略任务">策略任务</option>
+            <option value="指令任务">指令任务</option>
+          </select>
+          
+          <label>平台：</label>
+          <select v-model="newTask.platform" class="form-input">
+            <option value="X">X (Twitter)</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="YouTube">YouTube</option>
+          </select>
+          
+          <label>策略名称：</label>
+          <input v-model="newTask.strategyName" class="form-input" placeholder="请输入策略名称，如无请填-" />
+          
+          <label>账号数量：</label>
+          <input type="number" v-model="newTask.accountCount" class="form-input" placeholder="请输入账号数量" />
+          
+          <label>批次：</label>
+          <input type="number" v-model="newTask.batchCount" class="form-input" placeholder="请输入批次" />
+          
+          <label>运行容器：</label>
+          <select v-model="newTask.container" class="form-input">
+            <option value="指纹浏览器 (AdsPower)">指纹浏览器 (AdsPower)</option>
+            <option value="云手机 (Redfinger)">云手机 (Redfinger)</option>
+            <option value="自研云环境">自研云环境</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="handleCancelTask">取消</button>
+          <button class="btn-confirm" @click="handleSaveTask">保存</button>
+        </div>
       </div>
     </div>
   </div>
@@ -348,7 +542,10 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
 
 .task-center-container {
   padding: 1.5rem 2rem;
-  background: #f5f7fa;
+  background-color: #f5f7fa;
+  background-image: url('/image/background.jpg');
+  background-size: cover;
+  background-position: center top;
   min-height: 100vh;
 }
 
@@ -539,6 +736,13 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
   color: #111827;
 }
 
+.no-data {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin-top: 2rem;
+}
+
 /* 任务列表 */
 .task-list-section {
   background: white;
@@ -703,6 +907,26 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
   color: #065f46;
 }
 
+.status-running {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-waiting {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-canceled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 .time-cell {
   font-size: 0.8125rem;
   color: #6b7280;
@@ -748,5 +972,80 @@ const maxContainerValue = Math.max(...containerTaskData.flatMap(d => d.values))
   .charts-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  width: 450px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  color: #111827;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-top: 0.5rem;
+}
+.form-input {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  border-color: #2563eb;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.btn-cancel {
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+.btn-confirm {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 </style>

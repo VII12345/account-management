@@ -23,7 +23,7 @@ export default defineConfig({
         host: '0.0.0.0', // 允许局域网其他设备访问
         proxy: {
             '/api': {
-                target: 'http://localhost:8080', // 后端地址，按需修改
+                target: 'http://165.154.4.83:8080', // 后端地址，按需修改
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api/, '')
             }

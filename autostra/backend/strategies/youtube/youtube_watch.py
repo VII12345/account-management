@@ -1,6 +1,11 @@
 from ..base import BaseStrategy
 import random
 import asyncio
+from pathlib import Path
+from lib import HumanMouse
+
+_MODEL_PATH = Path(__file__).resolve().parents[2] / "mouse.onnx"
+_HUMAN_MOUSE = HumanMouse(model_path=_MODEL_PATH)
 
 class Strategy(BaseStrategy):
     async def run(self, page, params, logs):
@@ -90,12 +95,12 @@ class Strategy(BaseStrategy):
         except:
             pass
 
-        # 核心：使用 JS 原生点击 (Bypass Playwright 遮挡检查)
+        # 核心：使用 HumanMouse 点击
         try:
-            await target_video.evaluate("el => el.click()")
-            logs.append("-> 已触发 JS 点击")
+            await _HUMAN_MOUSE.click_element(page, target_video)
+            logs.append("-> 已触发 HumanMouse 点击")
         except Exception as e:
-            logs.append(f"❌ JS 点击失败: {e}")
+            logs.append(f"❌ HumanMouse 点击失败: {e}")
             return
 
         # =====================================================
@@ -121,9 +126,12 @@ class Strategy(BaseStrategy):
             # 简单的广告检测
             for ad_sel in ad_selectors:
                 try:
-                    if await page.locator(ad_sel).is_visible():
-                        logs.append("⚡ 跳过广告")
-                        await page.locator(ad_sel).click()
+                    locator = page.locator(ad_sel)
+                    if await locator.is_visible():
+                        handle = await locator.element_handle()
+                        if handle:
+                            logs.append("⚡ 跳过广告")
+                            await _HUMAN_MOUSE.click_element(page, handle, pause_after=False)
                 except:
                     pass
             

@@ -1,5 +1,10 @@
 from ..base import BaseStrategy
 import asyncio
+from pathlib import Path
+from lib import HumanMouse
+
+_MODEL_PATH = Path(__file__).resolve().parents[2] / "mouse.onnx"
+_HUMAN_MOUSE = HumanMouse(model_path=_MODEL_PATH)
 
 class Strategy(BaseStrategy):
     async def run(self, page, params, logs):
@@ -52,8 +57,8 @@ class Strategy(BaseStrategy):
                     await target_btn.evaluate("el => el.scrollIntoView({block: 'center', inline: 'center'})")
                     await page.wait_for_timeout(500)
                     
-                    # 点击
-                    await target_btn.evaluate("el => el.click()")
+                    # 点击（HumanMouse）
+                    await _HUMAN_MOUSE.click_element(page, target_btn)
                     logs.append("✅ [YouTube] 已发送订阅点击指令")
                     
                     # 5. 验证结果

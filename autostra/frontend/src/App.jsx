@@ -7,7 +7,8 @@ import ReactFlow, {
   Controls,
   Background,
   MiniMap,
-  Panel
+  Panel,
+  MarkerType
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import axios from 'axios';
@@ -137,7 +138,8 @@ const App = () => {
           ...edge,
           // ⚠️ 关键修复：如果 edge.id 是 null，React 就会报 "same key null" 错误
           // 这里我们生成一个唯一的 ID：e_源_目标_索引
-          id: edge.id || `e_${edge.source}-${edge.target}_${index}`
+          id: edge.id || `e_${edge.source}-${edge.target}_${index}`,
+          markerEnd: { type: MarkerType.ArrowClosed }
         }));
       }
       // ===================================
@@ -234,7 +236,7 @@ const App = () => {
   };
 
   // --- React Flow 基础 ---
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)), [setEdges]);
   const onEdgeDoubleClick = useCallback((event, edge) => setEdges((eds) => eds.filter((e) => e.id !== edge.id)), [setEdges]);
   const onNodeClick = (event, node) => setSelectedNode(node);
   const onDragStart = (event, nodeType, label) => { event.dataTransfer.setData('application/reactflow', JSON.stringify({ nodeType, label })); event.dataTransfer.effectAllowed = 'move'; };
