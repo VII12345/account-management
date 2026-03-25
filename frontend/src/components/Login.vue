@@ -72,7 +72,7 @@ const handleLogin = async () => {
     const redirect = router.currentRoute.value.query.redirect as string;
     router.push(redirect || '/');
   } catch (error: any) {
-    errors.password = error.message || '登录失败，请检查账号密码';
+    errors.password = error.response?.data?.detail || error.message || '登录失败，请检查账号密码';
   } finally {
     isLoading.value = false;
   }
@@ -85,9 +85,9 @@ const handleRegister = async () => {
   if (!registerForm.username) { errors.username = '请输入用户名'; isValid = false; }
   if (!registerForm.email.includes('@')) { errors.email = '请输入有效的邮箱'; isValid = false; }
   if (registerForm.password.length < 6) { errors.password = '密码至少6位'; isValid = false; }
-  if (registerForm.password !== registerForm.confirmPassword) { 
-    errors.confirmPassword = '两次输入的密码不一致'; 
-    isValid = false; 
+  if (registerForm.password !== registerForm.confirmPassword) {
+    errors.confirmPassword = '两次输入的密码不一致';
+    isValid = false;
   }
 
   if (!isValid) return;
@@ -98,7 +98,7 @@ const handleRegister = async () => {
     alert('注册成功，请登录');
     switchView('login'); // 注册成功跳回登录
   } catch (error: any) {
-    errors.email = error.message || '注册失败';
+    errors.email = error.response?.data?.detail || error.message || '注册失败';
   } finally {
     isLoading.value = false;
   }
@@ -125,7 +125,7 @@ const handleForgot = async () => {
     alert('密码已重置，请使用新密码登录');
     switchView('login');
   } catch (error: any) {
-    errors.email = error.message || '重置密码失败';
+    errors.email = error.response?.data?.detail || error.message || '重置密码失败';
   } finally {
     isLoading.value = false;
   }
@@ -163,7 +163,7 @@ const subtitle = computed(() => {
 
       <!-- 使用 Transition 实现切换动画 -->
       <Transition name="fade" mode="out-in">
-        
+
         <!-- 1. 登录表单 -->
         <form v-if="currentView === 'login'" @submit.prevent="handleLogin" class="auth-form">
           <div class="form-group">
@@ -223,7 +223,7 @@ const subtitle = computed(() => {
             </div>
             <span class="error-msg">{{ errors.password }}</span>
           </div>
-          
+
           <div class="form-group">
             <label>确认密码</label>
             <div class="input-wrapper" :class="{ 'has-error': errors.confirmPassword }">
@@ -297,12 +297,34 @@ const subtitle = computed(() => {
   z-index: 0;
   animation: float 10s infinite ease-in-out;
 }
-.circle-1 { width: 300px; height: 300px; background: rgba(99, 102, 241, 0.4); top: -50px; left: -50px; }
-.circle-2 { width: 250px; height: 250px; background: rgba(236, 72, 153, 0.4); bottom: -50px; right: -50px; animation-delay: -5s; }
+
+.circle-1 {
+  width: 300px;
+  height: 300px;
+  background: rgba(99, 102, 241, 0.4);
+  top: -50px;
+  left: -50px;
+}
+
+.circle-2 {
+  width: 250px;
+  height: 250px;
+  background: rgba(236, 72, 153, 0.4);
+  bottom: -50px;
+  right: -50px;
+  animation-delay: -5s;
+}
 
 @keyframes float {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, 20px); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(30px, 20px);
+  }
 }
 
 /* --- 卡片主体 --- */
@@ -317,17 +339,39 @@ const subtitle = computed(() => {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   z-index: 1;
   /* 确保切换内容时卡片高度平滑变化（可选） */
-  transition: all 0.3s ease; 
+  transition: all 0.3s ease;
 }
 
 /* Header */
-.card-header { text-align: center; margin-bottom: 30px; }
-.card-header h1 { font-size: 26px; color: #1f2937; margin-bottom: 8px; font-weight: 700; }
-.card-header p { color: #6b7280; font-size: 14px; }
+.card-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.card-header h1 {
+  font-size: 26px;
+  color: #1f2937;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.card-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
 
 /* 表单通用 */
-.form-group { margin-bottom: 18px; }
-.form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
 
 .input-wrapper {
   background: #f9fafb;
@@ -335,12 +379,17 @@ const subtitle = computed(() => {
   border-radius: 10px;
   transition: all 0.3s ease;
 }
+
 .input-wrapper:focus-within {
   background: #fff;
   border-color: #6366f1;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
-.input-wrapper.has-error { border-color: #ef4444; background: #fef2f2; }
+
+.input-wrapper.has-error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
 
 .input-wrapper input {
   width: 100%;
@@ -350,18 +399,51 @@ const subtitle = computed(() => {
   outline: none;
   font-size: 14px;
   color: #1f2937;
-  box-sizing: border-box; /* 关键修正 */
+  box-sizing: border-box;
+  /* 关键修正 */
 }
 
-.error-msg { color: #ef4444; font-size: 12px; margin-top: 4px; display: block; min-height: 18px; }
+.error-msg {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  min-height: 18px;
+}
 
 /* 底部操作区 */
-.form-actions { display: flex; align-items: center; margin-bottom: 24px; font-size: 13px; }
-.space-between { justify-content: space-between; }
-.checkbox-wrapper { display: flex; align-items: center; cursor: pointer; color: #4b5563; }
-.checkbox-wrapper input { margin-right: 8px; accent-color: #6366f1; }
-.link-btn { color: #6366f1; text-decoration: none; font-weight: 500; }
-.link-btn:hover { text-decoration: underline; }
+.form-actions {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.checkbox-wrapper input {
+  margin-right: 8px;
+  accent-color: #6366f1;
+}
+
+.link-btn {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
 
 /* 按钮 */
 .submit-btn {
@@ -376,15 +458,44 @@ const subtitle = computed(() => {
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-.submit-btn:disabled { opacity: 0.7; cursor: wait; }
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
 
 /* 底部切换链接 */
-.card-footer { margin-top: 20px; text-align: center; font-size: 13px; color: #6b7280; }
-.card-footer a { color: #6366f1; font-weight: 600; text-decoration: none; }
-.card-footer a:hover { text-decoration: underline; }
-.back-link { display: inline-block; margin-top: 10px; color: #6b7280 !important; }
-.back-link:hover { color: #1f2937 !important; }
+.card-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.card-footer a {
+  color: #6366f1;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.card-footer a:hover {
+  text-decoration: underline;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #6b7280 !important;
+}
+
+.back-link:hover {
+  color: #1f2937 !important;
+}
 
 /* --- 动画效果 --- */
 .fade-enter-active,
@@ -396,6 +507,7 @@ const subtitle = computed(() => {
   opacity: 0;
   transform: translateX(10px);
 }
+
 .fade-leave-to {
   opacity: 0;
   transform: translateX(-10px);

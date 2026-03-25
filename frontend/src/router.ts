@@ -75,21 +75,21 @@ const router = createRouter({
 })
 
 // 路由守卫 - 检测登录状态
-router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+// router.beforeEach((to, from, next) => {
+//   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
 
-  if (requiresAuth && !isAuthenticated()) {
-    // 需要登录但未登录，跳转到登录页
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
-  } else if (to.path === '/login' && isAuthenticated()) {
-    // 已登录但访问登录页，跳转到首页
-    next('/')
-  } else {
-    next()
-  }
-})
+//   if (requiresAuth && !isAuthenticated()) {
+//     // 需要登录但未登录，跳转到登录页
+//     next({
+//       path: '/login',
+//       query: { redirect: to.fullPath }
+//     })
+//   } else if (to.path === '/login' && isAuthenticated()) {
+//     // 已登录但访问登录页，跳转到首页
+//     next('/')
+//   } else {
+//     next()
+//   }
+// })
 
 export default router

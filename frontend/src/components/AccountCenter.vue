@@ -201,13 +201,39 @@ const importJson = async (): Promise<void> => {
     alert('请输入 JSON 数据')
     return
   }
-  importLoading.value = true
+
+  let accounts: any[] = []
   try {
-    const accounts = JSON.parse(jsonInput.value)
-    if (!Array.isArray(accounts)) {
-      alert('JSON 数据必须是数组格式')
+    accounts = JSON.parse(jsonInput.value)
+  } catch (e) {
+    alert('JSON 格式错误，请检查语法')
+    return
+  }
+
+  if (!Array.isArray(accounts)) {
+    alert('JSON 数据必须是数组格式')
+    return
+  }
+  if (accounts.length === 0) {
+    alert('导入的数据不能为空')
+    return
+  }
+
+  // 格式验证：检查必填字段
+  for (let i = 0; i < accounts.length; i++) {
+    const acc = accounts[i]
+    if (typeof acc !== 'object' || acc === null) {
+      alert(`第 ${i + 1} 条数据格式错误：必须是一个对象`)
       return
     }
+    if (!acc.platform || !acc.username || !acc.password || !acc.email) {
+      alert(`第 ${i + 1} 条数据格式错误：缺少必填字段 platform, username, password 或 email`)
+      return
+    }
+  }
+
+  importLoading.value = true
+  try {
     const response = await authFetch(`${API_BASE_URL}/accounts/import/json`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -224,7 +250,7 @@ const importJson = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('JSON 导入出错:', error)
-    alert('JSON 格式错误或导入出错')
+    alert('网络请求或导入出错')
   } finally {
     importLoading.value = false
   }
@@ -274,7 +300,25 @@ const handleImport = (): void => {
 const handleFileChange = (event: Event): void => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    csvFile.value = target.files[0] as File
+    const file = target.files[0] as File
+
+    // 验证文件类型
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('请选择有效的 CSV 文件')
+      target.value = '' // 清空选择
+      csvFile.value = null
+      return
+    }
+
+    // 验证文件大小 (最大 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('文件大小不能超过 5MB')
+      target.value = '' // 清空选择
+      csvFile.value = null
+      return
+    }
+
+    csvFile.value = file
   }
 }
 
@@ -339,8 +383,8 @@ const openDeleteModal = (id: number): void => {
 
 // 提交表单
 const handleSubmit = (): void => {
-  if (!accountForm.value.username || !accountForm.value.password) {
-    alert('用户名和密码是必填项')
+  if (!accountForm.value.platform || !accountForm.value.username || !accountForm.value.password || !accountForm.value.email) {
+    alert('平台、用户名、密码和邮箱都是必填项')
     return
   }
   if (modalMode.value === 'create') {
@@ -444,20 +488,12 @@ onMounted(() => {
     <!-- 左侧边栏 -->
     <aside class="sidebar">
       <div class="menu-group" v-for="item in menuItems" :key="item.id">
-        <div 
-          class="menu-item"
-          :class="{ 'menu-item-active': activeMenu === item.label }"
-          @click="handleMenuClick(item.label)"
-        >
+        <div class="menu-item" :class="{ 'menu-item-active': activeMenu === item.label }"
+          @click="handleMenuClick(item.label)">
           {{ item.label }}
         </div>
-        <div 
-          v-for="child in item.children" 
-          :key="child"
-          class="submenu-item"
-          :class="{ 'submenu-item-active': activeSubMenu === child }"
-          @click="handleSubMenuClick(child)"
-        >
+        <div v-for="child in item.children" :key="child" class="submenu-item"
+          :class="{ 'submenu-item-active': activeSubMenu === child }" @click="handleSubMenuClick(child)">
           {{ child }}
         </div>
       </div>
@@ -477,15 +513,11 @@ onMounted(() => {
         <h2 class="page-title">{{ activeSubMenu }}</h2>
         <div class="header-actions">
           <div class="search-box">
-            <input
-              v-model="searchKeyword"
-              type="text"
-              placeholder="搜索用户名、邮箱、平台"
-              class="search-input"
-            />
+            <input v-model="searchKeyword" type="text" placeholder="搜索用户名、邮箱、平台" class="search-input" />
             <button class="search-button">
               <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           </div>
@@ -617,7 +649,7 @@ onMounted(() => {
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">平台</label>
+            <label class="form-label">平台 <span class="required">*</span></label>
             <select v-model="accountForm.platform" class="form-input">
               <option value="">请选择</option>
               <option v-for="option in platformOptions" :key="option" :value="option">
@@ -634,7 +666,7 @@ onMounted(() => {
             <input v-model="accountForm.password" type="text" class="form-input" placeholder="请输入密码" />
           </div>
           <div class="form-group">
-            <label class="form-label">邮箱</label>
+            <label class="form-label">邮箱 <span class="required">*</span></label>
             <input v-model="accountForm.email" type="email" class="form-input" placeholder="请输入邮箱" />
           </div>
           <div class="form-group">
@@ -672,18 +704,10 @@ onMounted(() => {
         </div>
         <div class="modal-body">
           <div class="import-tabs">
-            <button 
-              class="import-tab" 
-              :class="{ active: importType === 'json' }"
-              @click="importType = 'json'"
-            >
+            <button class="import-tab" :class="{ active: importType === 'json' }" @click="importType = 'json'">
               JSON 导入
             </button>
-            <button 
-              class="import-tab" 
-              :class="{ active: importType === 'csv' }"
-              @click="importType = 'csv'"
-            >
+            <button class="import-tab" :class="{ active: importType === 'csv' }" @click="importType = 'csv'">
               CSV 导入
             </button>
           </div>
@@ -691,13 +715,10 @@ onMounted(() => {
           <div v-if="importType === 'json'" class="import-content">
             <p class="import-hint">
               请输入 JSON 数组格式的账号数据，每个账号包含以下字段：<br />
-              <code>platform</code>, <code>username</code>(必填), <code>password</code>(必填), 
-              <code>email</code>, <code>phone</code>, <code>status</code>, <code>tags</code>
+              <code>platform</code>(必填), <code>username</code>(必填), <code>password</code>(必填),
+              <code>email</code>(必填), <code>phone</code>, <code>status</code>, <code>tags</code>
             </p>
-            <textarea 
-              v-model="jsonInput" 
-              class="json-textarea" 
-              placeholder='[
+            <textarea v-model="jsonInput" class="json-textarea" placeholder='[
   {
     "platform": "Facebook",
     "username": "user1",
@@ -707,27 +728,21 @@ onMounted(() => {
     "status": "active",
     "tags": "测试,新用户"
   }
-]'
-            ></textarea>
+]'></textarea>
           </div>
 
           <div v-if="importType === 'csv'" class="import-content">
             <p class="import-hint">
               请上传 CSV 文件，文件需要包含以下列标题：<br />
-              <code>platform</code>, <code>username</code>(必填), <code>password</code>(必填), 
-              <code>email</code>, <code>phone</code>, <code>status</code>, <code>tags</code>
+              <code>platform</code>(必填), <code>username</code>(必填), <code>password</code>(必填),
+              <code>email</code>(必填), <code>phone</code>, <code>status</code>, <code>tags</code>
             </p>
             <div class="file-upload">
-              <input 
-                type="file" 
-                accept=".csv" 
-                @change="handleFileChange" 
-                id="csv-file"
-                class="file-input"
-              />
+              <input type="file" accept=".csv" @change="handleFileChange" id="csv-file" class="file-input" />
               <label for="csv-file" class="file-label">
                 <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 {{ csvFile ? csvFile.name : '点击选择文件或拖拽文件到此处' }}
               </label>
@@ -1037,7 +1052,9 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .data-table {

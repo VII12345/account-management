@@ -105,8 +105,14 @@ export async function loginApi(email: string, password: string): Promise<LoginRe
     })
 
     if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || '登录失败')
+        let errorMsg = '登录失败'
+        try {
+            const error = await response.json()
+            errorMsg = error.detail || errorMsg
+        } catch (e) {
+            errorMsg = `服务器异常: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMsg)
     }
 
     return response.json()
@@ -125,8 +131,14 @@ export async function registerApi(email: string, password: string): Promise<ApiR
     })
 
     if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || '注册失败')
+        let errorMsg = '注册失败'
+        try {
+            const error = await response.json()
+            errorMsg = error.detail || errorMsg
+        } catch (e) {
+            errorMsg = `服务器异常: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMsg)
     }
 
     return response.json()
@@ -145,8 +157,14 @@ export async function resetPasswordApi(email: string, newPassword: string): Prom
     })
 
     if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || '重置密码失败')
+        let errorMsg = '重置密码失败'
+        try {
+            const error = await response.json()
+            errorMsg = error.detail || errorMsg
+        } catch (e) {
+            errorMsg = `服务器异常: ${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMsg)
     }
 
     return response.json()
