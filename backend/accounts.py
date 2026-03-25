@@ -33,7 +33,15 @@ async def create_account(data: Account):
             INSERT INTO accounts (platform, username, password, email, phone, status, created_at, tags)
             VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s)
             """,
-            (data.platform, data.username, data.password, data.email, data.phone, data.status, data.tags)
+            (
+                data.platform,
+                data.username,
+                data.password,
+                data.email,
+                data.phone,
+                data.status,
+                data.tags,
+            ),
         )
         await conn.commit()
     conn.close()
@@ -45,29 +53,36 @@ async def create_account(data: Account):
 # -------------------------
 @router.get("/")
 async def list_accounts(
+    platform: str | None = Query(None),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=200)
+    page_size: int = Query(20, ge=1, le=200),
 ):
     offset = (page - 1) * page_size
 
     conn = await get_conn()
     async with conn.cursor() as cur:
-        await cur.execute("SELECT COUNT(*) FROM accounts")
-        total = (await cur.fetchone())[0]
+        if platform:
+            await cur.execute(
+                "SELECT COUNT(*) FROM accounts WHERE platform=%s", (platform,)
+            )
+            total = (await cur.fetchone())[0]
 
-        await cur.execute(
-            "SELECT * FROM accounts ORDER BY id DESC LIMIT %s OFFSET %s",
-            (page_size, offset)
-        )
+            await cur.execute(
+                "SELECT * FROM accounts WHERE platform=%s ORDER BY id DESC LIMIT %s OFFSET %s",
+                (platform, page_size, offset),
+            )
+        else:
+            await cur.execute("SELECT COUNT(*) FROM accounts")
+            total = (await cur.fetchone())[0]
+
+            await cur.execute(
+                "SELECT * FROM accounts ORDER BY id DESC LIMIT %s OFFSET %s",
+                (page_size, offset),
+            )
         rows = await cur.fetchall()
 
     conn.close()
-    return {
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "data": rows
-    }
+    return {"total": total, "page": page, "page_size": page_size, "data": rows}
 
 
 # -------------------------
@@ -100,7 +115,16 @@ async def update_account(acc_id: int, data: Account):
             SET platform=%s, username=%s, password=%s, email=%s, phone=%s, status=%s, tags=%s
             WHERE id=%s
             """,
-            (data.platform, data.username, data.password, data.email, data.phone, data.status, data.tags, acc_id)
+            (
+                data.platform,
+                data.username,
+                data.password,
+                data.email,
+                data.phone,
+                data.status,
+                data.tags,
+                acc_id,
+            ),
         )
         await conn.commit()
     conn.close()
@@ -133,7 +157,15 @@ async def import_json(accounts: list[Account]):
                 INSERT INTO accounts (platform, username, password, email, phone, status, created_at, tags)
                 VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s)
                 """,
-                (acc.platform, acc.username, acc.password, acc.email, acc.phone, acc.status, acc.tags)
+                (
+                    acc.platform,
+                    acc.username,
+                    acc.password,
+                    acc.email,
+                    acc.phone,
+                    acc.status,
+                    acc.tags,
+                ),
             )
         await conn.commit()
     conn.close()
@@ -164,8 +196,8 @@ async def import_csv(file: UploadFile = File(...)):
                     row.get("email"),
                     row.get("phone"),
                     row.get("status", "active"),
-                    row.get("tags")
-                )
+                    row.get("tags"),
+                ),
             )
             count += 1
         await conn.commit()
