@@ -52,12 +52,12 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "Starting backend on http://${BACKEND_HOST}:${BACKEND_PORT}"
-(
-  cd "$BACKEND_DIR"
-  exec "$PYTHON_BIN" -m uvicorn main:app --reload --host "$BACKEND_HOST" --port "$BACKEND_PORT"
-) &
-BACKEND_PID=$!
+# echo "Starting backend on http://${BACKEND_HOST}:${BACKEND_PORT}"
+# (
+#   cd "$BACKEND_DIR"
+#   exec "$PYTHON_BIN" -m uvicorn main:app --reload --host "$BACKEND_HOST" --port "$BACKEND_PORT"
+# ) &
+# BACKEND_PID=$!
 
 echo "Starting frontend on http://${FRONTEND_HOST}"
 (

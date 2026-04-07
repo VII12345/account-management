@@ -70,7 +70,6 @@ const App = () => {
   const [resultImg, setResultImg] = useState(null);
 
   const [loading, setLoading] = useState(false); // 控制运行按钮状态
-  const [saving, setSaving] = useState(false);   // 控制保存按钮状态
 
   // ===========================
   // 1. 初始化：获取统计数据
@@ -168,56 +167,10 @@ const App = () => {
     setViewMode('editor');
   };
 
-  // 保存当前策略
-  // ==============================================
-  // 4. 保存功能
-  // ==============================================
-  const handleSave = async (showTip = true) => {
-    // 修改 1: 使用 currentPlatform 判断
-    if (!currentPlatform) return;
-    if (currentPlatform.id === 'common') return; // 公共动作不需要保存
-
-    if (!currentStrategyName) {
-      if (showTip) alert("请先新建或选择一个策略文件！");
-      return;
-    }
-
-    // 如果你定义了 saving 状态，取消注释下面这行
-    // setSaving(true); 
-
-    const payload = {
-      nodes: nodes,
-      edges: edges,
-      cdp_url: ""
-    };
-
-    try {
-      // 修改 2: URL 路径使用 currentPlatform.id
-      await axios.post(`http://${window.location.hostname}:8000/save/${currentPlatform.id}/${currentStrategyName}`, payload);
-
-      if (showTip) {
-        // 修改 3: 提示语使用 currentPlatform.name
-        alert(`✅ [${currentPlatform.name}] 策略 "${currentStrategyName}" 已保存！`);
-      }
-
-      // 刷新侧边栏的数字统计
-      fetchStats();
-
-    } catch (e) {
-      console.error(e);
-      if (showTip) alert('❌ 保存失败，请检查后端');
-    } finally {
-      // setSaving(false);
-    }
-  };
-
   // 运行
   const handleRun = async () => {
     setLoading(true);
     setLogs([]); setResultImg(null);
-
-    // 1. 静默保存
-    await handleSave(false);
 
     const payload = { nodes, edges, cdp_url: "http://127.0.0.1:9222" };
 
@@ -352,7 +305,6 @@ const App = () => {
           </div>
 
           <div style={{ padding: 10, borderTop: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <button className="run-btn" style={{ background: '#fff', color: '#333', border: '1px solid #ccc' }} onClick={handleSave}>💾 保存</button>
             <button className="run-btn" onClick={handleRun} style={{ background: currentPlatform.color }}>▶ 运行</button>
           </div>
 
