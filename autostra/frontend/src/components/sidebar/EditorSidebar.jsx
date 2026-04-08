@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const EditorSidebar = ({
   currentPlatform,
   currentStrategyName,
@@ -14,6 +16,7 @@ const EditorSidebar = ({
   onSave,
   onRun
 }) => {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const accountNameMap = Object.fromEntries(accountOptions.map((account) => [account.id, account.name]));
 
   return (
@@ -107,7 +110,70 @@ const EditorSidebar = ({
           {logs.map((log, index) => <div key={index}>{log}</div>)}
         </div>
       )}
-      {resultImg && <img src={resultImg} style={{ width: '100%' }} />}
+      {resultImg && (
+        <div style={{ borderTop: '1px solid #eee', padding: 8, background: '#fafafa' }}>
+          <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>运行结果截图（点击可放大）</div>
+          <img
+            src={resultImg}
+            onClick={() => setIsPreviewOpen(true)}
+            style={{
+              width: '100%',
+              maxHeight: 180,
+              objectFit: 'cover',
+              cursor: 'zoom-in',
+              borderRadius: 6,
+              border: '1px solid #e5e7eb'
+            }}
+          />
+        </div>
+      )}
+
+      {isPreviewOpen && resultImg && (
+        <div
+          onClick={() => setIsPreviewOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            background: 'rgba(0, 0, 0, 0.82)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            cursor: 'zoom-out'
+          }}
+        >
+          <img
+            src={resultImg}
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              maxWidth: '92vw',
+              maxHeight: '92vh',
+              borderRadius: 8,
+              boxShadow: '0 12px 48px rgba(0, 0, 0, 0.45)'
+            }}
+          />
+          <button
+            onClick={() => setIsPreviewOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 16,
+              right: 16,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              border: '1px solid rgba(255,255,255,0.5)',
+              background: 'rgba(0,0,0,0.45)',
+              color: '#fff',
+              fontSize: 20,
+              lineHeight: '34px',
+              cursor: 'pointer'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 };
