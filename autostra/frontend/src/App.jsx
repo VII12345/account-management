@@ -10,6 +10,8 @@ import {
   listStrategiesApi,
   loadStrategyApi,
   saveStrategyApi,
+  deleteStrategyApi,
+  deletePublicStrategyApi,
   savePublicStrategyApi,
   listPublicStrategiesApi,
   getPublicStrategyTargetsApi,
@@ -25,6 +27,7 @@ import FlowCanvas from './components/editor/FlowCanvas';
 
 const PUBLIC_STRATEGY_ACCOUNT = { id: '__public__', name: '公共策略' };
 const PUBLIC_TEMPLATE_ACCOUNT = { id: '__public__', name: '公共策略模板' };
+const DEFAULT_CDP_URL = 'http://127.0.0.1:9222';
 
 const App = () => {
   const reactFlowWrapper = useRef(null);
@@ -38,7 +41,7 @@ const App = () => {
 
   // --- 数据状态 ---
   const [stats, setStats] = useState({}); // { x: 5, youtube: 12 }
-  const [accountList, setAccountList] = useState([]); // [{ id, name }]
+  const [accountList, setAccountList] = useState([]); // [{ id, name, account_ip, account_port }]
   const [strategyList, setStrategyList] = useState([]); // ['strategy1', 'test2']
   const [publicStrategyTargetsMap, setPublicStrategyTargetsMap] = useState({}); // { strategyName: ['a1', 'a2'] }
 
@@ -67,6 +70,19 @@ const App = () => {
   const isPublicStrategyMode = currentAccount?.id === PUBLIC_STRATEGY_ACCOUNT.id;
   const effectiveAccount = isPublicStrategyMode ? PUBLIC_TEMPLATE_ACCOUNT : currentAccount;
   const selectedTargetAccounts = accountList.filter((account) => selectedStrategyAccountIds.includes(account.id));
+
+  const buildCdpUrlByAccount = (account) => {
+    if (!account) return DEFAULT_CDP_URL;
+    const host = account.account_ip;
+    const port = account.account_port;
+    if (!host || !port) return DEFAULT_CDP_URL;
+    return `http://${host}:${port}`;
+  };
+
+  const currentExecutionAccount = isPublicStrategyMode
+    ? selectedTargetAccounts[0]
+    : accountList.find((item) => item.id === effectiveAccount?.id);
+  const currentCdpUrl = buildCdpUrlByAccount(currentExecutionAccount);
 
   const fetchStrategiesForAccount = async (account) => {
     if (!currentPlatform || !account?.id) {
@@ -230,6 +246,42 @@ const App = () => {
     setViewMode('editor');
   };
 
+  const handleDeleteStrategy = async (name) => {
+    if (!currentPlatform) return;
+    if (!name) return;
+
+    const confirmed = window.confirm(`确认删除策略 "${name}" 吗？\n仅删除策略，不会删除账号。`);
+    if (!confirmed) return;
+
+    try {
+      if (isPublicStrategyMode) {
+        await deletePublicStrategyApi(currentPlatform.id, name);
+        setPublicStrategyTargetsMap((prev) => {
+          const next = { ...prev };
+          delete next[name];
+          return next;
+        });
+      } else {
+        await deleteStrategyApi(currentPlatform.id, effectiveAccount?.id, name);
+      }
+
+      setStrategyList((prev) => prev.filter((item) => item !== name));
+
+      if (currentStrategyName === name) {
+        setCurrentStrategyName(null);
+        setNodes([...DEFAULT_NODES]);
+        setEdges([]);
+        setViewMode('strategies');
+      }
+
+      alert(`✅ 策略 "${name}" 已删除（账号未删除）`);
+      fetchStats();
+    } catch (error) {
+      console.error(error);
+      alert('❌ 删除策略失败');
+    }
+  };
+
   const handleSave = async (showTip = true) => {
     if (!currentPlatform) return;
     if (currentPlatform.id === 'common') return;
@@ -246,7 +298,7 @@ const App = () => {
     const payload = {
       nodes,
       edges,
-      cdp_url: ''
+      cdp_url: currentCdpUrl
     };
 
     try {
@@ -313,14 +365,27 @@ const App = () => {
 
     await handleSave(false);
 
-    const payload = { nodes, edges, cdp_url: "http://127.0.0.1:9222" };
+    const payload = {
+      nodes,
+      edges,
+      cdp_url: currentCdpUrl,
+      group_id: currentPlatform.id,
+      strategy_name: currentStrategyName,
+      is_public: isPublicStrategyMode,
+      account_id: isPublicStrategyMode ? null : effectiveAccount?.id,
+      target_account_ids: isPublicStrategyMode ? selectedStrategyAccountIds : []
+    };
 
     try {
       const res = await runStrategyApi(payload);
-      if (res.data.status === 'success') {
+      if (res.data.status === 'success' || res.data.status === 'partial_success') {
         setLogs(res.data.logs);
         setResultImg(res.data.screenshot);
-        alert(`✅ [${currentPlatform.name}/${effectiveAccount?.name || '-'}] 执行完成！`);
+        if (res.data.mode === 'multi') {
+          alert(`✅ [${currentPlatform.name}/公共策略] 执行完成：${res.data.success_count}/${res.data.total_count}\n后端已按账号端口并发连接浏览器`);
+        } else {
+          alert(`✅ [${currentPlatform.name}/${effectiveAccount?.name || '-'}] 执行完成！\n目标: ${currentCdpUrl}`);
+        }
       } else {
         alert('❌ 出错: ' + res.data.message);
       }
@@ -416,6 +481,7 @@ const App = () => {
           selectedAccountIds={selectedStrategyAccountIds}
           onToggleAccount={handleToggleStrategyAccount}
           onUpdateTargets={handleUpdatePublicTargets}
+          onDeleteStrategy={handleDeleteStrategy}
         />
       );
     }

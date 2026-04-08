@@ -24,3 +24,8 @@ class FlowRequest(BaseModel):
     nodes: List[Node]
     edges: List[Edge]
     cdp_url: str = "http://127.0.0.1:9222"
+    group_id: Optional[str] = None
+    strategy_name: Optional[str] = None
+    account_id: Optional[str] = None
+    is_public: bool = False
+    target_account_ids: Optional[List[str]] = None

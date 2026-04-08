@@ -13,6 +13,8 @@ interface AccountData {
   password: string
   email: string | null
   phone: string | null
+  account_ip: string | null
+  account_port: number | null
   status: string | null
   created_at: string | null
   tags: string | null
@@ -88,7 +90,8 @@ const fetchAccounts = async (): Promise<void> => {
     )
     if (response.ok) {
       const data = await response.json()
-      // 后端返回的是数组格式 [id, platform, username, password, email, phone, status, created_at, tags]
+      // 后端返回的是数组格式
+      // [id, platform, username, password, email, phone, status, created_at, tags, account_ip, account_port]
       // 需要转换为对象格式
       tableData.value = (data.data || []).map((row: any[]) => ({
         id: row[0],
@@ -99,7 +102,9 @@ const fetchAccounts = async (): Promise<void> => {
         phone: row[5],
         status: row[6],
         created_at: row[7],
-        tags: row[8]
+        tags: row[8],
+        account_ip: row[9] ?? null,
+        account_port: row[10] ?? null
       }))
       totalRecords.value = data.total || 0
     } else {
@@ -574,6 +579,8 @@ onMounted(() => {
               <th>密码</th>
               <th>邮箱</th>
               <th>手机号</th>
+              <th>账号IP</th>
+              <th>端口</th>
               <th>状态</th>
               <th>标签</th>
               <th>创建时间</th>
@@ -582,7 +589,7 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-if="filteredData.length === 0">
-              <td colspan="10" class="empty-data">
+              <td colspan="12" class="empty-data">
                 暂无数据
               </td>
             </tr>
@@ -595,6 +602,8 @@ onMounted(() => {
               </td>
               <td>{{ row.email || '-' }}</td>
               <td>{{ row.phone || '-' }}</td>
+              <td>{{ row.account_ip || '-' }}</td>
+              <td>{{ row.account_port ?? '-' }}</td>
               <td>
                 <span class="status-badge" :class="getStatusClass(row.status)">
                   {{ getStatusText(row.status) }}

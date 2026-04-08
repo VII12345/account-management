@@ -10,7 +10,8 @@ const StrategyList = ({
   accountOptions = [],
   selectedAccountIds = [],
   onToggleAccount,
-  onUpdateTargets
+  onUpdateTargets,
+  onDeleteStrategy
 }) => {
   const accountNameMap = Object.fromEntries(accountOptions.map((account) => [account.id, account.name]));
 
@@ -58,7 +59,26 @@ const StrategyList = ({
           const targets = strategyTargetsMap[name] || [];
           return (
             <div key={name} className="strategy-item" onClick={() => onStrategyClick(name)}>
-              <div>📄 {name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span>📄 {name}</span>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDeleteStrategy?.(name);
+                  }}
+                  style={{
+                    border: '1px solid #ffd2d2',
+                    color: '#c62828',
+                    background: '#fff5f5',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    padding: '2px 6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  删除
+                </button>
+              </div>
               {showAccountSelector && (
                 <div style={{ marginTop: 4, fontSize: 11, color: '#777', lineHeight: 1.4 }}>
                   作用账号：{targets.length > 0 ? targets.map((accountId) => accountNameMap[accountId] || accountId).join('、') : '未绑定'}

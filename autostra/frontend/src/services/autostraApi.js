@@ -68,20 +68,42 @@ const mapAccountRow = (row) => {
         const id = row[0];
         const username = row[2] || `账号_${id}`;
         const platform = row[1] || '';
-        return { id: String(id), name: String(username), platform: String(platform) };
+        const accountIp = row[9] || '';
+        const accountPort = row[10] || null;
+        return {
+            id: String(id),
+            name: String(username),
+            platform: String(platform),
+            account_ip: accountIp ? String(accountIp) : '',
+            account_port: accountPort !== null && accountPort !== undefined ? Number(accountPort) : null
+        };
     }
 
     const id = row?.id ?? row?.account_id ?? row?.email ?? row?.username;
     const username = row?.username || row?.name || row?.account_id || row?.email || `账号_${id}`;
     const platform = row?.platform || row?.group_id || '';
-    return { id: String(id), name: String(username), platform: String(platform) };
+    const accountIp = row?.account_ip || row?.ip || '';
+    const accountPort = row?.account_port ?? row?.port ?? null;
+    return {
+        id: String(id),
+        name: String(username),
+        platform: String(platform),
+        account_ip: accountIp ? String(accountIp) : '',
+        account_port: accountPort !== null && accountPort !== undefined ? Number(accountPort) : null
+    };
 };
 
 const parseAccountsResponse = (data) => {
     if (Array.isArray(data?.data)) {
         return data.data.map((item) => {
             const mapped = mapAccountRow(item);
-            return { id: mapped.id, name: mapped.name, platform: mapped.platform };
+            return {
+                id: mapped.id,
+                name: mapped.name,
+                platform: mapped.platform,
+                account_ip: mapped.account_ip,
+                account_port: mapped.account_port
+            };
         });
     }
 
@@ -93,7 +115,13 @@ const parseAccountsResponse = (data) => {
             }
 
             const mapped = mapAccountRow(item);
-            return { id: mapped.id, name: mapped.name, platform: mapped.platform };
+            return {
+                id: mapped.id,
+                name: mapped.name,
+                platform: mapped.platform,
+                account_ip: mapped.account_ip,
+                account_port: mapped.account_port
+            };
         });
     }
 
@@ -121,7 +149,9 @@ export const listAccountsApi = (platformId) => {
 
             const accounts = visibleAccounts.map((item) => ({
                 id: item.id,
-                name: item.name
+                name: item.name,
+                account_ip: item.account_ip || '',
+                account_port: item.account_port ?? null
             }));
 
             return { data: { accounts } };
@@ -150,6 +180,18 @@ export const loadStrategyApi = (platformId, accountId, strategyName) => {
 export const saveStrategyApi = (platformId, accountId, strategyName, payload) => {
     return axios.post(`${getCoreApiBaseUrl()}/save/${platformId}/${strategyName}`, payload, {
         params: { account_id: accountId }
+    });
+};
+
+export const deleteStrategyApi = (platformId, accountId, strategyName) => {
+    return axios.delete(`${getCoreApiBaseUrl()}/delete/${platformId}/${strategyName}`, {
+        params: { account_id: accountId, is_public: false }
+    });
+};
+
+export const deletePublicStrategyApi = (platformId, strategyName) => {
+    return axios.delete(`${getCoreApiBaseUrl()}/delete/${platformId}/${strategyName}`, {
+        params: { is_public: true }
     });
 };
 
