@@ -1,6 +1,11 @@
 const EditorSidebar = ({
   currentPlatform,
   currentStrategyName,
+  isPublicStrategyMode = false,
+  accountOptions = [],
+  selectedAccountIds = [],
+  onToggleAccount,
+  onUpdateTargets,
   commonItems,
   logs,
   resultImg,
@@ -9,6 +14,8 @@ const EditorSidebar = ({
   onSave,
   onRun
 }) => {
+  const accountNameMap = Object.fromEntries(accountOptions.map((account) => [account.id, account.name]));
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="sidebar-nav">
@@ -19,6 +26,47 @@ const EditorSidebar = ({
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
+        {isPublicStrategyMode && (
+          <div style={{ marginBottom: 15, padding: 10, border: '1px solid #e6eaff', borderRadius: 8, background: '#fafbff' }}>
+            <div style={{ fontSize: 12, color: '#2457ff', marginBottom: 8, fontWeight: 'bold' }}>公共策略作用账号</div>
+            <div style={{ maxHeight: 160, overflowY: 'auto', border: '1px solid #e5e5e5', borderRadius: 6, background: '#fff' }}>
+              {accountOptions.map((account) => (
+                <label
+                  key={account.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 10px',
+                    borderBottom: '1px solid #f5f5f5',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedAccountIds.includes(account.id)}
+                    onChange={() => onToggleAccount?.(account.id)}
+                  />
+                  <span style={{ fontSize: 13 }}>{account.name}</span>
+                </label>
+              ))}
+              {accountOptions.length === 0 && (
+                <div style={{ padding: '8px 10px', color: '#999', fontSize: 12 }}>暂无可选账号</div>
+              )}
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: '#666' }}>
+              当前已选：{selectedAccountIds.length > 0 ? selectedAccountIds.map((accountId) => accountNameMap[accountId] || accountId).join('、') : '未选择'}
+            </div>
+            <button
+              className="run-btn"
+              onClick={() => onUpdateTargets?.()}
+              style={{ marginTop: 8, background: '#f3f6ff', color: '#2457ff', border: '1px solid #cdd8ff' }}
+            >
+              更新作用账号
+            </button>
+          </div>
+        )}
+
         <div style={{ marginBottom: 15 }}>
           <div style={{ fontSize: 12, color: '#999', marginBottom: 5 }}>专属动作</div>
           {currentPlatform?.items?.map((item) => (

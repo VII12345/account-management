@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 // 你的 React 项目地址
-const REACT_APP_URL = 'http://localhost:3001' 
+const REACT_APP_URL = 'http://hk.xzzzs.icu:3001' 
 
 const iframeRef = ref<HTMLIFrameElement | null>(null)
 const isLoading = ref(true)

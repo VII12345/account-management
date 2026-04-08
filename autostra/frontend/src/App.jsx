@@ -10,6 +10,10 @@ import {
   listStrategiesApi,
   loadStrategyApi,
   saveStrategyApi,
+  savePublicStrategyApi,
+  listPublicStrategiesApi,
+  getPublicStrategyTargetsApi,
+  updatePublicStrategyTargetsApi,
   runStrategyApi
 } from './services/autostraApi';
 import { getNextNodeId } from './utils/nodeFactory';
@@ -19,6 +23,9 @@ import StrategyList from './components/sidebar/StrategyList';
 import EditorSidebar from './components/sidebar/EditorSidebar';
 import FlowCanvas from './components/editor/FlowCanvas';
 
+const PUBLIC_STRATEGY_ACCOUNT = { id: '__public__', name: '公共策略' };
+const PUBLIC_TEMPLATE_ACCOUNT = { id: '__public__', name: '公共策略模板' };
+
 const App = () => {
   const reactFlowWrapper = useRef(null);
 
@@ -26,12 +33,14 @@ const App = () => {
   const [viewMode, setViewMode] = useState('platforms'); // 'platforms' | 'accounts' | 'strategies' | 'editor'
   const [currentPlatform, setCurrentPlatform] = useState(null); // 当前选中的平台对象
   const [currentAccount, setCurrentAccount] = useState(null); // { id, name }
+  const [selectedStrategyAccountIds, setSelectedStrategyAccountIds] = useState([]); // 公共策略模式下勾选账号
   const [currentStrategyName, setCurrentStrategyName] = useState(null); // 当前选中的策略文件名
 
   // --- 数据状态 ---
   const [stats, setStats] = useState({}); // { x: 5, youtube: 12 }
   const [accountList, setAccountList] = useState([]); // [{ id, name }]
   const [strategyList, setStrategyList] = useState([]); // ['strategy1', 'test2']
+  const [publicStrategyTargetsMap, setPublicStrategyTargetsMap] = useState({}); // { strategyName: ['a1', 'a2'] }
 
   // --- 画布状态 ---
   const [nodes, setNodes, onNodesChange] = useNodesState(DEFAULT_NODES);
@@ -55,11 +64,31 @@ const App = () => {
 
   useEffect(() => { fetchStats(); }, []);
 
+  const isPublicStrategyMode = currentAccount?.id === PUBLIC_STRATEGY_ACCOUNT.id;
+  const effectiveAccount = isPublicStrategyMode ? PUBLIC_TEMPLATE_ACCOUNT : currentAccount;
+  const selectedTargetAccounts = accountList.filter((account) => selectedStrategyAccountIds.includes(account.id));
+
+  const fetchStrategiesForAccount = async (account) => {
+    if (!currentPlatform || !account?.id) {
+      setStrategyList([]);
+      return;
+    }
+
+    try {
+      const res = await listStrategiesApi(currentPlatform.id, account.id);
+      setStrategyList(res.data.strategies || []);
+    } catch {
+      setStrategyList([]);
+    }
+  };
+
   const handlePlatformClick = async (platform) => {
     setCurrentPlatform(platform);
     setCurrentAccount(null);
+    setSelectedStrategyAccountIds([]);
     setCurrentStrategyName(null);
     setStrategyList([]);
+    setPublicStrategyTargetsMap({});
     setViewMode('accounts');
 
     try {
@@ -77,15 +106,53 @@ const App = () => {
     if (!currentPlatform) return;
 
     setCurrentAccount(account);
+    setSelectedStrategyAccountIds([account.id]);
+    setCurrentStrategyName(null);
+    setPublicStrategyTargetsMap({});
+    setViewMode('strategies');
+
+    await fetchStrategiesForAccount(account);
+  };
+
+  const handlePublicStrategyClick = async () => {
+    if (!currentPlatform) return;
+
+    setCurrentAccount(PUBLIC_STRATEGY_ACCOUNT);
     setCurrentStrategyName(null);
     setViewMode('strategies');
 
+    setSelectedStrategyAccountIds(accountList.map((account) => account.id));
+
+    // 加载公共策略列表
     try {
-      const res = await listStrategiesApi(currentPlatform.id, account.id);
-      setStrategyList(res.data.strategies || []);
+      const res = await listPublicStrategiesApi(currentPlatform.id);
+      const strategies = res.data.strategies || [];
+      setStrategyList(strategies);
+
+      const targetPairs = await Promise.all(
+        strategies.map(async (strategyName) => {
+          try {
+            const targetRes = await getPublicStrategyTargetsApi(currentPlatform.id, strategyName);
+            return [strategyName, targetRes.data.targets || []];
+          } catch {
+            return [strategyName, []];
+          }
+        })
+      );
+      setPublicStrategyTargetsMap(Object.fromEntries(targetPairs));
     } catch {
       setStrategyList([]);
+      setPublicStrategyTargetsMap({});
     }
+  };
+
+  const handleToggleStrategyAccount = (accountId) => {
+    setSelectedStrategyAccountIds((prev) => {
+      if (prev.includes(accountId)) {
+        return prev.filter((id) => id !== accountId);
+      }
+      return [...prev, accountId];
+    });
   };
 
   const handleStrategyClick = async (name) => {
@@ -95,7 +162,24 @@ const App = () => {
         return;
       }
 
-      const res = await loadStrategyApi(currentPlatform.id, currentAccount.id, name);
+      // 如果是公共策略模式，从 __public__ 账号加载
+      const loadAccountId = isPublicStrategyMode ? '__public__' : effectiveAccount.id;
+
+      if (isPublicStrategyMode) {
+        try {
+          const targetRes = await getPublicStrategyTargetsApi(currentPlatform.id, name);
+          const targetIds = targetRes.data.targets || [];
+          setSelectedStrategyAccountIds(targetIds);
+          setPublicStrategyTargetsMap((prev) => ({
+            ...prev,
+            [name]: targetIds
+          }));
+        } catch {
+          setSelectedStrategyAccountIds([]);
+        }
+      }
+
+      const res = await loadStrategyApi(currentPlatform.id, loadAccountId, name);
       let safeNodes = [];
       if (res.data && Array.isArray(res.data.nodes)) {
         safeNodes = res.data.nodes.map((node) => ({
@@ -149,7 +233,7 @@ const App = () => {
   const handleSave = async (showTip = true) => {
     if (!currentPlatform) return;
     if (currentPlatform.id === 'common') return;
-    if (!currentAccount) {
+    if (!effectiveAccount) {
       if (showTip) alert('请先选择账号');
       return;
     }
@@ -166,15 +250,58 @@ const App = () => {
     };
 
     try {
-      await saveStrategyApi(currentPlatform.id, currentAccount.id, currentStrategyName, payload);
+      if (isPublicStrategyMode) {
+        if (selectedStrategyAccountIds.length === 0) {
+          if (showTip) alert('请至少勾选一个目标账号');
+          return;
+        }
 
-      if (showTip) {
-        alert(`✅ [${currentPlatform.name}/${currentAccount.name}] 策略 "${currentStrategyName}" 已保存！`);
+        // 调用新的公共策略 API，传递 targetAccounts 参数
+        await savePublicStrategyApi(currentPlatform.id, currentStrategyName, payload, selectedStrategyAccountIds);
+        setPublicStrategyTargetsMap((prev) => ({
+          ...prev,
+          [currentStrategyName]: [...selectedStrategyAccountIds]
+        }));
+
+        if (showTip) {
+          alert(`✅ [${currentPlatform.name}] 公共策略 "${currentStrategyName}" 已同步到 ${selectedStrategyAccountIds.length} 个账号`);
+        }
+      } else {
+        await saveStrategyApi(currentPlatform.id, effectiveAccount.id, currentStrategyName, payload);
+
+        if (showTip) {
+          alert(`✅ [${currentPlatform.name}/${effectiveAccount.name}] 策略 "${currentStrategyName}" 已保存！`);
+        }
       }
+
       fetchStats();
     } catch (e) {
       console.error(e);
       if (showTip) alert('❌ 保存失败，请检查后端');
+    }
+  };
+
+  const handleUpdatePublicTargets = async () => {
+    if (!isPublicStrategyMode) return;
+    if (!currentStrategyName) {
+      alert('请先选择一个公共策略');
+      return;
+    }
+    if (selectedStrategyAccountIds.length === 0) {
+      alert('请至少选择一个作用账号');
+      return;
+    }
+
+    try {
+      await updatePublicStrategyTargetsApi(currentPlatform.id, currentStrategyName, selectedStrategyAccountIds);
+      setPublicStrategyTargetsMap((prev) => ({
+        ...prev,
+        [currentStrategyName]: [...selectedStrategyAccountIds]
+      }));
+      alert(`✅ 已更新公共策略 "${currentStrategyName}" 的作用账号`);
+    } catch (error) {
+      console.error(error);
+      alert('❌ 更新作用账号失败');
     }
   };
 
@@ -193,7 +320,7 @@ const App = () => {
       if (res.data.status === 'success') {
         setLogs(res.data.logs);
         setResultImg(res.data.screenshot);
-        alert(`✅ [${currentPlatform.name}/${currentAccount?.name || '-'}] 执行完成！`);
+        alert(`✅ [${currentPlatform.name}/${effectiveAccount?.name || '-'}] 执行完成！`);
       } else {
         alert('❌ 出错: ' + res.data.message);
       }
@@ -246,13 +373,8 @@ const App = () => {
   };
 
   const handleBackToStrategies = async () => {
-    if (!currentPlatform || !currentAccount) return;
-    try {
-      const res = await listStrategiesApi(currentPlatform.id, currentAccount.id);
-      setStrategyList(res.data.strategies || []);
-    } catch {
-      setStrategyList([]);
-    }
+    if (!currentPlatform) return;
+    await fetchStrategiesForAccount(effectiveAccount);
     setViewMode('strategies');
   };
 
@@ -274,6 +396,7 @@ const App = () => {
           accountList={accountList}
           onBack={() => setViewMode('platforms')}
           onAccountClick={handleAccountClick}
+          onPublicStrategyClick={handlePublicStrategyClick}
         />
       );
     }
@@ -284,9 +407,15 @@ const App = () => {
           currentPlatform={currentPlatform}
           currentAccount={currentAccount?.name}
           strategyList={strategyList}
+          strategyTargetsMap={publicStrategyTargetsMap}
           onBack={() => setViewMode('accounts')}
           onStrategyClick={handleStrategyClick}
           onCreateNew={handleCreateNew}
+          showAccountSelector={isPublicStrategyMode}
+          accountOptions={accountList}
+          selectedAccountIds={selectedStrategyAccountIds}
+          onToggleAccount={handleToggleStrategyAccount}
+          onUpdateTargets={handleUpdatePublicTargets}
         />
       );
     }
@@ -296,6 +425,11 @@ const App = () => {
         <EditorSidebar
           currentPlatform={currentPlatform}
           currentStrategyName={currentStrategyName}
+          isPublicStrategyMode={isPublicStrategyMode}
+          accountOptions={accountList}
+          selectedAccountIds={selectedStrategyAccountIds}
+          onToggleAccount={handleToggleStrategyAccount}
+          onUpdateTargets={handleUpdatePublicTargets}
           commonItems={getCommonItems()}
           logs={logs}
           resultImg={resultImg}

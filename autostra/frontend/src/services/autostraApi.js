@@ -1,8 +1,44 @@
 import axios from 'axios';
 
-const getBaseUrl = () => `http://${window.location.hostname}:8080`;
-const getAccountBaseUrl = () => import.meta.env.VITE_ACCOUNT_API_BASE || getBaseUrl();
-const hasCustomAccountBase = () => Boolean(import.meta.env.VITE_ACCOUNT_API_BASE);
+const getCoreApiBaseUrl = () => {
+    const configuredBase = import.meta.env.VITE_ACCOUNT_API_BASE;
+    if (configuredBase) {
+        return configuredBase.replace(/\/$/, '');
+    }
+
+    return '/account-api';
+};
+
+const getAccountApiBaseUrl = () => {
+    const configuredBase = import.meta.env.VITE_YANGHAO_API_BASE;
+    if (configuredBase) {
+        return configuredBase.replace(/\/$/, '');
+    }
+
+    return '/api';
+};
+
+const getAccountFallbackBaseUrl = () => `http://${window.location.hostname}:8080`;
+
+const appendQueryArray = (baseUrl, params = {}) => {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+            return;
+        }
+
+        if (Array.isArray(value)) {
+            value.forEach((item) => query.append(key, item));
+            return;
+        }
+
+        query.append(key, value);
+    });
+
+    const queryString = query.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+};
 
 const normalizePlatform = (value) => String(value || '').trim().toLowerCase();
 
@@ -35,72 +71,112 @@ const mapAccountRow = (row) => {
         return { id: String(id), name: String(username), platform: String(platform) };
     }
 
-    const id = row?.id;
-    const username = row?.username || `账号_${id}`;
-    const platform = row?.platform || '';
+    const id = row?.id ?? row?.account_id ?? row?.email ?? row?.username;
+    const username = row?.username || row?.name || row?.account_id || row?.email || `账号_${id}`;
+    const platform = row?.platform || row?.group_id || '';
     return { id: String(id), name: String(username), platform: String(platform) };
 };
 
-export const fetchStatsApi = () => axios.get(`${getBaseUrl()}/stats`);
+const parseAccountsResponse = (data) => {
+    if (Array.isArray(data?.data)) {
+        return data.data.map((item) => {
+            const mapped = mapAccountRow(item);
+            return { id: mapped.id, name: mapped.name, platform: mapped.platform };
+        });
+    }
+
+    if (Array.isArray(data?.accounts)) {
+        return data.accounts.map((item) => {
+            if (typeof item === 'string' || typeof item === 'number') {
+                const id = String(item);
+                return { id, name: id, platform: '' };
+            }
+
+            const mapped = mapAccountRow(item);
+            return { id: mapped.id, name: mapped.name, platform: mapped.platform };
+        });
+    }
+
+    return [];
+};
+
+export const fetchStatsApi = () => axios.get(`${getCoreApiBaseUrl()}/stats`);
 
 export const listAccountsApi = (platformId) => {
-    return axios
-        .get(`${getAccountBaseUrl()}/accounts/`, {
-            params: {
-                page: 1,
-                page_size: 20
-            }
-        })
-        .then((res) => {
+    const params = {
+        page: 1,
+        page_size: 20
+    };
+
+    const requestAccounts = (baseUrl) => {
+        return axios.get(`${baseUrl}/accounts/`, { params }).then((res) => {
             const contentType = res.headers?.['content-type'] || '';
             if (contentType.includes('text/html') || typeof res.data === 'string') {
-                throw new Error('账号接口返回了 HTML 页面，请检查 Nginx /api 反向代理是否正确转发到后端。');
+                throw new Error('账号接口返回了 HTML 页面');
             }
 
-            const rows = Array.isArray(res.data?.data) ? res.data.data : [];
-            const allAccounts = rows
-                .map(mapAccountRow)
-                .map((item) => ({ id: item.id, name: item.name, platform: item.platform }));
-
+            const allAccounts = parseAccountsResponse(res.data);
             const matchedAccounts = allAccounts.filter((item) => isSamePlatform(item.platform, platformId));
             const visibleAccounts = matchedAccounts.length > 0 ? matchedAccounts : allAccounts;
-            const accounts = visibleAccounts.map((item) => ({ id: item.id, name: item.name }));
+
+            const accounts = visibleAccounts.map((item) => ({
+                id: item.id,
+                name: item.name
+            }));
 
             return { data: { accounts } };
-        })
-        .catch((error) => {
-            if (hasCustomAccountBase()) {
-                throw error;
-            }
-
-            return axios.get(`${getBaseUrl()}/accounts/${platformId}`).then((res) => {
-                const accounts = (res.data?.accounts || []).map((item) => ({
-                    id: String(item),
-                    name: String(item)
-                }));
-                return { data: { accounts } };
-            });
         });
+    };
+
+    return requestAccounts(getAccountApiBaseUrl()).catch(() =>
+        requestAccounts(getAccountFallbackBaseUrl()).catch(() => {
+            throw new Error('账号接口不可用，请检查 /api 反向代理或 8080 端口连通性。');
+        })
+    );
 };
 
 export const listStrategiesApi = (platformId, accountId) => {
-    return axios.get(`${getBaseUrl()}/list/${platformId}`, {
+    return axios.get(`${getCoreApiBaseUrl()}/list/${platformId}`, {
         params: { account_id: accountId }
     });
 };
 
 export const loadStrategyApi = (platformId, accountId, strategyName) => {
-    return axios.get(`${getBaseUrl()}/load/${platformId}/${strategyName}`, {
+    return axios.get(`${getCoreApiBaseUrl()}/load/${platformId}/${strategyName}`, {
         params: { account_id: accountId }
     });
 };
 
 export const saveStrategyApi = (platformId, accountId, strategyName, payload) => {
-    return axios.post(`${getBaseUrl()}/save/${platformId}/${strategyName}`, payload, {
+    return axios.post(`${getCoreApiBaseUrl()}/save/${platformId}/${strategyName}`, payload, {
         params: { account_id: accountId }
     });
 };
 
 export const runStrategyApi = (payload) => {
-    return axios.post(`${getBaseUrl()}/run`, payload);
+    return axios.post(`${getCoreApiBaseUrl()}/run`, payload);
+};
+
+// ============ 公共策略 API ============
+
+export const savePublicStrategyApi = (platformId, strategyName, payload, targetAccounts) => {
+    const url = appendQueryArray(`${getCoreApiBaseUrl()}/save-public/${platformId}/${strategyName}`, {
+        target_accounts: targetAccounts
+    });
+    return axios.post(url, payload);
+};
+
+export const listPublicStrategiesApi = (platformId) => {
+    return axios.get(`${getCoreApiBaseUrl()}/list-public/${platformId}`);
+};
+
+export const getPublicStrategyTargetsApi = (platformId, strategyName) => {
+    return axios.get(`${getCoreApiBaseUrl()}/public-targets/${platformId}/${strategyName}`);
+};
+
+export const updatePublicStrategyTargetsApi = (platformId, strategyName, targetAccounts) => {
+    const url = appendQueryArray(`${getCoreApiBaseUrl()}/update-public-targets/${platformId}/${strategyName}`, {
+        target_accounts: targetAccounts
+    });
+    return axios.post(url);
 };
