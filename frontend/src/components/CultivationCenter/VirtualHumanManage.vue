@@ -1,3 +1,10 @@
+<!--
+  文件注释：frontend/src/components/CultivationCenter/VirtualHumanManage.vue
+
+  职责：承载当前页面/组件的视图结构、交互事件与状态绑定。
+  边界：仅处理前端展示与交互编排，不在此文件实现后端业务规则。
+-->
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 

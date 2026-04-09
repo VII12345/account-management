@@ -1,4 +1,9 @@
-<!-- TaskCenter.vue -->
+<!--
+  文件注释：frontend/src/components/TaskCenter/TaskCenter.vue
+
+  职责：承载任务中心主页面，组织任务列表展示、筛选条件与批量操作入口。
+  边界：仅处理页面交互与状态展示，不在本文件中实现任务调度执行能力。
+-->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -41,7 +46,7 @@ const newTask = ref<Partial<TaskData>>({})
 const filteredTaskList = computed<TaskData[]>(() => {
   const keyword = searchKeyword.value.trim().toLowerCase()
   if (!keyword) return taskList.value
-  return taskList.value.filter(task => 
+  return taskList.value.filter(task =>
     task.name.toLowerCase().includes(keyword) ||
     task.strategyName.toLowerCase().includes(keyword) ||
     task.platform.toLowerCase().includes(keyword)
@@ -224,7 +229,7 @@ const handleSaveTask = (): void => {
     alert('请输入任务名称')
     return
   }
-  
+
   const now = new Date()
   const createTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
   const platformIcons: Record<string, string> = { 'X': '✖️', 'TikTok': '🎵', 'Instagram': '📷', 'Facebook': '📘', 'YouTube': '▶️' }
@@ -295,14 +300,15 @@ const maxContainerValue = computed(() => {
           <div class="chart-title-wrapper">
             <h3 class="chart-title">各平台任务数</h3>
             <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke-width="2"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01"/>
+              <circle cx="12" cy="12" r="10" stroke-width="2" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01" />
             </svg>
           </div>
           <div class="chart-unit">
             单位：
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
         </div>
@@ -337,14 +343,15 @@ const maxContainerValue = computed(() => {
           <div class="chart-title-wrapper">
             <h3 class="chart-title">各容器任务数</h3>
             <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke-width="2"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01"/>
+              <circle cx="12" cy="12" r="10" stroke-width="2" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01" />
             </svg>
           </div>
           <div class="chart-unit">
             单位：
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
         </div>
@@ -357,13 +364,16 @@ const maxContainerValue = computed(() => {
           <div class="bar-chart">
             <div class="bar-group" v-for="data in containerTaskData" :key="data.name">
               <div class="bars-container">
-                <div class="bar blue wide" :style="{ height: getBarHeight(data.values[0] ?? 0, maxContainerValue) + '%' }">
+                <div class="bar blue wide"
+                  :style="{ height: getBarHeight(data.values[0] ?? 0, maxContainerValue) + '%' }">
                   <span class="bar-value">{{ data.values[0] ?? 0 }}</span>
                 </div>
-                <div class="bar red wide" :style="{ height: getBarHeight(data.values[1] ?? 0, maxContainerValue) + '%' }">
+                <div class="bar red wide"
+                  :style="{ height: getBarHeight(data.values[1] ?? 0, maxContainerValue) + '%' }">
                   <span class="bar-value">{{ data.values[1] ?? 0 }}</span>
                 </div>
-                <div class="bar gray wide" :style="{ height: getBarHeight(data.values[2] ?? 0, maxContainerValue) + '%' }">
+                <div class="bar gray wide"
+                  :style="{ height: getBarHeight(data.values[2] ?? 0, maxContainerValue) + '%' }">
                   <span class="bar-value">{{ data.values[2] ?? 0 }}</span>
                 </div>
               </div>
@@ -379,8 +389,8 @@ const maxContainerValue = computed(() => {
           <div class="chart-title-wrapper">
             <h3 class="chart-title">策略排行</h3>
             <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke-width="2"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01"/>
+              <circle cx="12" cy="12" r="10" stroke-width="2" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4M12 8h.01" />
             </svg>
           </div>
         </div>
@@ -410,15 +420,11 @@ const maxContainerValue = computed(() => {
             </svg>
           </button>
           <div class="search-box">
-            <input
-              v-model="searchKeyword"
-              type="text"
-              placeholder="请输入关键词"
-              class="search-input"
-              @keyup.enter="handleSearch"
-            />
+            <input v-model="searchKeyword" type="text" placeholder="请输入关键词" class="search-input"
+              @keyup.enter="handleSearch" />
             <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
         </div>
@@ -452,11 +458,8 @@ const maxContainerValue = computed(() => {
           <tbody>
             <tr v-for="task in filteredTaskList" :key="task.id">
               <td>
-                <input
-                  type="checkbox"
-                  :checked="selectedRows.includes(task.id)"
-                  @change="() => handleRowSelect(task.id)"
-                />
+                <input type="checkbox" :checked="selectedRows.includes(task.id)"
+                  @change="() => handleRowSelect(task.id)" />
               </td>
               <td>{{ task.id }}</td>
               <td class="task-name">{{ task.name }}</td>
@@ -492,13 +495,13 @@ const maxContainerValue = computed(() => {
         <div class="form-group">
           <label>任务名称：</label>
           <input v-model="newTask.name" class="form-input" placeholder="请输入任务名称" />
-          
+
           <label>任务类型：</label>
           <select v-model="newTask.type" class="form-input">
             <option value="策略任务">策略任务</option>
             <option value="指令任务">指令任务</option>
           </select>
-          
+
           <label>平台：</label>
           <select v-model="newTask.platform" class="form-input">
             <option value="X">X (Twitter)</option>
@@ -507,16 +510,16 @@ const maxContainerValue = computed(() => {
             <option value="Facebook">Facebook</option>
             <option value="YouTube">YouTube</option>
           </select>
-          
+
           <label>策略名称：</label>
           <input v-model="newTask.strategyName" class="form-input" placeholder="请输入策略名称，如无请填-" />
-          
+
           <label>账号数量：</label>
           <input type="number" v-model="newTask.accountCount" class="form-input" placeholder="请输入账号数量" />
-          
+
           <label>批次：</label>
           <input type="number" v-model="newTask.batchCount" class="form-input" placeholder="请输入批次" />
-          
+
           <label>运行容器：</label>
           <select v-model="newTask.container" class="form-input">
             <option value="指纹浏览器 (AdsPower)">指纹浏览器 (AdsPower)</option>
@@ -627,9 +630,17 @@ const maxContainerValue = computed(() => {
   border-radius: 50%;
 }
 
-.legend-dot.blue { background: #60a5fa; }
-.legend-dot.red { background: #f87171; }
-.legend-dot.gray { background: #94a3b8; }
+.legend-dot.blue {
+  background: #60a5fa;
+}
+
+.legend-dot.red {
+  background: #f87171;
+}
+
+.legend-dot.gray {
+  background: #94a3b8;
+}
 
 /* 柱状图 */
 .chart-content {
@@ -674,9 +685,17 @@ const maxContainerValue = computed(() => {
   width: 50px;
 }
 
-.bar.blue { background: #60a5fa; }
-.bar.red { background: #f87171; }
-.bar.gray { background: #94a3b8; }
+.bar.blue {
+  background: #60a5fa;
+}
+
+.bar.red {
+  background: #f87171;
+}
+
+.bar.gray {
+  background: #94a3b8;
+}
 
 .bar-value {
   font-size: 0.75rem;
@@ -987,6 +1006,7 @@ const maxContainerValue = computed(() => {
   align-items: center;
   z-index: 1000;
 }
+
 .modal-content {
   background: white;
   padding: 2rem;
@@ -994,12 +1014,14 @@ const maxContainerValue = computed(() => {
   width: 450px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
+
 .modal-content h3 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   font-size: 1.25rem;
   color: #111827;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1008,12 +1030,14 @@ const maxContainerValue = computed(() => {
   max-height: 60vh;
   overflow-y: auto;
 }
+
 .form-group label {
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
   margin-top: 0.5rem;
 }
+
 .form-input {
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -1022,14 +1046,17 @@ const maxContainerValue = computed(() => {
   outline: none;
   transition: border-color 0.2s;
 }
+
 .form-input:focus {
   border-color: #2563eb;
 }
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
 }
+
 .btn-cancel {
   background: #f9fafb;
   border: 1px solid #d1d5db;
@@ -1039,6 +1066,7 @@ const maxContainerValue = computed(() => {
   color: #374151;
   cursor: pointer;
 }
+
 .btn-confirm {
   background: #2563eb;
   color: white;

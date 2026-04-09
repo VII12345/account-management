@@ -1,3 +1,10 @@
+/**
+ * 文件注释：autostra/frontend/eslint.config.js
+ *
+ * 职责：集中定义自动化前端代码规范、语法检查规则与忽略范围。
+ * 边界：仅作用于静态检查阶段，不影响运行时业务行为。
+ */
+
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

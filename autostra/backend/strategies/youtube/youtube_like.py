@@ -1,3 +1,10 @@
+"""
+YouTube 点赞策略实现模块。
+
+职责：实现 YouTube 视频点赞动作，包括目标页面定位与点击反馈校验。
+边界：仅覆盖点赞，不承载评论、订阅或观看时长控制。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 from pathlib import Path

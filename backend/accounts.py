@@ -1,3 +1,10 @@
+"""
+账号管理路由模块。
+
+职责：提供账号列表、创建、更新、删除及筛选相关 API。
+边界：路由层负责参数编排与调用数据库访问，不承载与账号无关业务。
+"""
+
 # accounts.py
 import csv
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query

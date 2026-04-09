@@ -486,6 +486,7 @@ watch([currentPage, pageSize], () => {
 onMounted(() => {
   fetchAccounts()
 })
+
 </script>
 
 <template>

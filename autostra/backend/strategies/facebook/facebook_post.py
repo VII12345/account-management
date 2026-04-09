@@ -1,3 +1,10 @@
+"""
+Facebook 发帖策略实现模块。
+
+职责：封装 Facebook 发布内容相关的执行步骤与参数处理。
+边界：仅关注发帖流程，不混入登录、搜索或互动聚合逻辑。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 

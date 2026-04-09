@@ -1,3 +1,10 @@
+"""
+策略包初始化模块。
+
+职责：提供策略子包统一入口，便于外部按平台加载策略实现。
+边界：不实现具体业务动作，仅做包级组织与导出。
+"""
+
 # backend/strategies/__init__.py
 from .x.login_x import Strategy as LoginStrategyX
 from .x.like_x import Strategy as LikeStrategyX

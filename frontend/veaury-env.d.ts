@@ -1,4 +1,9 @@
-// veaury-env.d.ts
+/**
+ * 文件注释：frontend/veaury-env.d.ts
+ *
+ * 职责：为 Veaury 相关模块补充 TypeScript 声明，支持 Vue/React 混合开发时的类型推断。
+ * 边界：仅提供类型层定义，不参与运行时逻辑。
+ */
 
 declare module 'veaury/vite/index.js' {
     import type { Plugin } from 'vite'

@@ -1,3 +1,10 @@
+"""
+自动化子系统 FastAPI 入口模块。
+
+职责：应用初始化、路由注册、依赖组装以及对外 API 暴露。
+边界：请求级业务细节应下沉至 service/strategy 层，避免入口文件臃肿。
+"""
+
 import os
 import sys
 import io

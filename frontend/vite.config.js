@@ -1,3 +1,10 @@
+/**
+ * 文件注释：frontend/vite.config.js
+ *
+ * 职责：定义 Vite 开发服务器、插件链、路径别名与反向代理配置。
+ * 边界：仅负责构建与开发环境配置，不包含业务应用逻辑。
+ */
+
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'

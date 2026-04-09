@@ -1,3 +1,10 @@
+"""
+YouTube 登录策略实现模块。
+
+职责：处理 YouTube/Google 账号登录动作与状态判定。
+边界：聚焦认证链路，不混入搜索、观看、点赞业务。
+"""
+
 from ..base import BaseStrategy
 
 class Strategy(BaseStrategy):

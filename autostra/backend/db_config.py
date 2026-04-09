@@ -1,3 +1,10 @@
+"""
+自动化子系统数据库配置模块。
+
+职责：定义数据库连接参数、连接池相关配置与基础校验逻辑。
+边界：仅提供配置数据，不直接管理 SQL 执行与业务事务。
+"""
+
 import os
 from dataclasses import dataclass
 

@@ -1,4 +1,9 @@
-<!-- DailyTraining.vue -->
+<!--
+  文件注释：frontend/src/components/CultivationCenter/DailyTraining.vue
+
+  职责：承载培养中心的日常训练管理视图，组织任务展示、筛选与操作入口。
+  边界：仅实现前端页面交互与展示，不在本组件实现训练执行引擎逻辑。
+-->
 <script setup lang="ts">
 import { ref } from 'vue'
 
@@ -98,18 +103,14 @@ const handleSubMenuClick = (label: string) => {
         <h2 class="page-title">账号列表</h2>
         <div class="header-actions">
           <div class="search-box">
-            <input
-                v-model="selectedTag"
-                type="text"
-                placeholder="请输入关键词"
-                class="search-input"
-              />
-              <button @click="handleSearch" class="search-button">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
+            <input v-model="selectedTag" type="text" placeholder="请输入关键词" class="search-input" />
+            <button @click="handleSearch" class="search-button">
+              <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
           <button class="btn-primary" @click="handleCreateTask">创建任务</button>
         </div>
       </div>
@@ -209,11 +210,7 @@ const handleSubMenuClick = (label: string) => {
             <option :value="50">50 条/页</option>
             <option :value="100">100 条/页</option>
           </select>
-          <button
-            class="page-btn"
-            :disabled="currentPage === 1"
-            @click="handlePageChange(currentPage - 1)"
-          >
+          <button class="page-btn" :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)">
             ‹
           </button>
           <button class="page-btn page-btn-active">{{ currentPage }}</button>
@@ -231,10 +228,14 @@ const handleSubMenuClick = (label: string) => {
   min-height: 100vh;
   width: 100%;
   flex-direction: column;
-  background-image: url('/image/background.jpg'); /* 替换为你的图片路径 */
-  background-size: cover; /* 图片铺满容器 */
-  background-position: center; /* 图片居中显示 */
-  background-repeat: no-repeat; /* 不重复 */
+  background-image: url('/image/background.jpg');
+  /* 替换为你的图片路径 */
+  background-size: cover;
+  /* 图片铺满容器 */
+  background-position: center;
+  /* 图片居中显示 */
+  background-repeat: no-repeat;
+  /* 不重复 */
 }
 
 
@@ -244,7 +245,8 @@ const handleSubMenuClick = (label: string) => {
   flex-direction: column;
   flex: 1;
   padding: 1.5rem 2rem;
-  min-height: 0; /* 防止子元素溢出 */
+  min-height: 0;
+  /* 防止子元素溢出 */
 }
 
 /* 面包屑 */
@@ -255,12 +257,15 @@ const handleSubMenuClick = (label: string) => {
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
 }
+
 .breadcrumb-item {
   color: #9da0a4;
 }
+
 .breadcrumb-item.active {
   color: #d4d4d4;
 }
+
 .breadcrumb-separator {
   color: #9ca3af;
 }
@@ -272,16 +277,19 @@ const handleSubMenuClick = (label: string) => {
   align-items: center;
   margin-bottom: 1rem;
 }
+
 .page-title {
   font-size: 1.5rem;
   font-weight: 600;
   color: #111827;
 }
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
+
 .search-box {
   display: flex;
   align-items: center;
@@ -337,21 +345,25 @@ const handleSubMenuClick = (label: string) => {
   padding: 1rem;
   margin-bottom: 1rem;
 }
+
 .filter-row {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
 }
+
 .filter-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 .filter-label {
   color: #374151;
   font-size: 0.875rem;
 }
+
 .filter-select {
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -359,6 +371,7 @@ const handleSubMenuClick = (label: string) => {
   font-size: 0.875rem;
   outline: none;
 }
+
 .btn-clear {
   background: white;
   border: 1px solid #d1d5db;
@@ -368,6 +381,7 @@ const handleSubMenuClick = (label: string) => {
   cursor: pointer;
   margin-left: auto;
 }
+
 .btn-clear:hover {
   background: #f9fafb;
 }
@@ -376,6 +390,7 @@ const handleSubMenuClick = (label: string) => {
 .multi-select {
   position: relative;
 }
+
 .select-button {
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -384,6 +399,7 @@ const handleSubMenuClick = (label: string) => {
   cursor: pointer;
   font-size: 0.875rem;
 }
+
 .dropdown {
   display: none;
   position: absolute;
@@ -396,9 +412,11 @@ const handleSubMenuClick = (label: string) => {
   padding: 0.5rem;
   z-index: 10;
 }
+
 .multi-select:hover .dropdown {
   display: block;
 }
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -409,17 +427,19 @@ const handleSubMenuClick = (label: string) => {
 
 /* 表格 */
 .table-container {
-  flex:1;
+  flex: 1;
   background: white;
   border-radius: 0.5rem;
   overflow: auto;
   border: 1px solid #e5e7eb;
   margin-bottom: 1rem;
 }
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .data-table th,
 .data-table td {
   padding: 0.75rem 1rem;
@@ -427,11 +447,13 @@ const handleSubMenuClick = (label: string) => {
   font-size: 0.875rem;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .data-table thead {
   background: #f9fafb;
   font-weight: 600;
   color: #374151;
 }
+
 .empty-data {
   text-align: center;
   color: #9ca3af;
@@ -448,15 +470,18 @@ const handleSubMenuClick = (label: string) => {
   background: white;
   border-radius: 0.5rem;
 }
+
 .pagination-info {
   color: #6b7280;
   font-size: 0.875rem;
 }
+
 .pagination-controls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 .page-size-select,
 .page-btn {
   border: 1px solid #d1d5db;
@@ -466,11 +491,13 @@ const handleSubMenuClick = (label: string) => {
   cursor: pointer;
   background: white;
 }
+
 .page-btn-active {
   background: #2563eb;
   color: white;
   border-color: #2563eb;
 }
+
 .page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

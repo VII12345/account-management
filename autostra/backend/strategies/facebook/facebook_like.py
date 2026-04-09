@@ -1,3 +1,10 @@
+"""
+Facebook 点赞策略实现模块。
+
+职责：定义 Facebook 场景下的点赞动作流程、步骤衔接与失败处理。
+边界：仅聚焦点赞任务，不承担搜索、发帖等其他场景。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 import random

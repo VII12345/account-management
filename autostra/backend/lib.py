@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+自动化子系统基础工具库。
+
+职责：封装通用工具函数与可复用辅助逻辑，降低各策略文件的重复代码。
+边界：仅放置跨场景公共能力，不承载具体平台业务流程。
+"""
+
 import random
 from pathlib import Path
 

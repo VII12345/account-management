@@ -1,3 +1,10 @@
+/**
+ * 文件注释：frontend/vite.config.ts
+ *
+ * 职责：定义 TypeScript 版本 Vite 配置，协调 Vue/React 插件与开发代理参数。
+ * 边界：仅承担工程构建配置，不处理页面业务逻辑。
+ */
+
 import { fileURLToPath, URL } from 'node:url'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'

@@ -1,3 +1,10 @@
+"""
+策略公共能力模块。
+
+职责：封装跨平台可复用的等待、重试、元素处理和通用流程工具。
+边界：不承载具体平台业务决策，平台差异留在各自 strategy 文件中。
+"""
+
 import asyncio
 from .base import BaseStrategy
 

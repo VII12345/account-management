@@ -1,3 +1,10 @@
+"""
+YouTube 搜索策略实现模块。
+
+职责：执行关键词搜索与结果定位，为后续互动行为提供目标上下文。
+边界：仅处理搜索阶段，不承担登录与具体互动动作。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 from pathlib import Path

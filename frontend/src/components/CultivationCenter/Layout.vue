@@ -1,4 +1,9 @@
-<!-- src/components/CultivationCenter/Layout.vue -->
+<!--
+  文件注释：frontend/src/components/CultivationCenter/Layout.vue
+
+  职责：提供培养中心模块的统一布局、导航高亮与子路由切换骨架。
+  边界：仅处理导航与布局编排，不承载具体业务数据读写逻辑。
+-->
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
@@ -18,18 +23,12 @@ const go = (path: string) => {
     <!-- 左侧菜单 -->
     <aside class="sidebar">
       <div class="menu-title">培育中心</div>
-      <div
-        class="menu-item"
-        :class="{ active: active.includes('/daily-training') }"
-        @click="go('/cultivation/daily-training')"
-      >
+      <div class="menu-item" :class="{ active: active.includes('/daily-training') }"
+        @click="go('/cultivation/daily-training')">
         日常培育
       </div>
-      <div
-        class="menu-item"
-        :class="{ active: active.includes('/virtual-human') }"
-        @click="go('/cultivation/virtual-human')"
-      >
+      <div class="menu-item" :class="{ active: active.includes('/virtual-human') }"
+        @click="go('/cultivation/virtual-human')">
         虚拟人管理
       </div>
     </aside>

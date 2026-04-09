@@ -1,3 +1,10 @@
+"""
+YouTube 互动策略实现模块。
+
+职责：组合执行点赞、评论、订阅等互动动作，支撑内容互动类任务。
+边界：不负责账号登录流程与纯搜索流程。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 from pathlib import Path

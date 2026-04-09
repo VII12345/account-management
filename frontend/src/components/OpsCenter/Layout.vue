@@ -1,4 +1,9 @@
-<!-- src/components/OpsCenter/Layout.vue -->
+<!--
+  文件注释：frontend/src/components/OpsCenter/Layout.vue
+
+  职责：作为运维中心的布局容器，负责模块导航、路由切换与内容区挂载。
+  边界：只负责视图层结构组织，不实现运维资源的业务处理规则。
+-->
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
@@ -18,25 +23,13 @@ const go = (path: string) => {
     <!-- 左侧菜单 -->
     <aside class="sidebar">
       <div class="menu-title">运维中心</div>
-      <div
-        class="menu-item"
-        :class="{ active: active.includes('/proxy') }"
-        @click="go('/ops/proxy')"
-      >
+      <div class="menu-item" :class="{ active: active.includes('/proxy') }" @click="go('/ops/proxy')">
         代理管理
       </div>
-      <div
-        class="menu-item"
-        :class="{ active: active.includes('/container') }"
-        @click="go('/ops/container')"
-      >
+      <div class="menu-item" :class="{ active: active.includes('/container') }" @click="go('/ops/container')">
         容器管理
       </div>
-      <div
-        class="menu-item"
-        :class="{ active: active.includes('/email') }"
-        @click="go('/ops/email')"
-      >
+      <div class="menu-item" :class="{ active: active.includes('/email') }" @click="go('/ops/email')">
         邮箱管理
       </div>
     </aside>

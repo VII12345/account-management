@@ -1,3 +1,10 @@
+"""
+自动化子系统数据模型定义模块。
+
+职责：使用 Pydantic 定义请求/响应结构，统一接口契约与字段验证。
+边界：仅描述数据形状，不处理数据库读写与流程编排。
+"""
+
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 

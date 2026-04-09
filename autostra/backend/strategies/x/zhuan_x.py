@@ -1,3 +1,10 @@
+"""
+X 平台转发策略实现模块。
+
+职责：封装转发动作流程，处理目标内容定位、按钮触发与状态确认。
+边界：仅针对转发场景，不与点赞、登录流程耦合。
+"""
+
 import random
 import asyncio
 from ..base import BaseStrategy

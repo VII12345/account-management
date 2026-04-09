@@ -1,3 +1,10 @@
+"""
+自动化执行引擎核心模块。
+
+职责：整合视觉识别、动作分发、页面元素处理等能力，为策略层提供统一执行入口。
+边界：偏执行编排与工具能力，不负责 FastAPI 路由声明与外部鉴权逻辑。
+"""
+
 import base64
 import traceback
 from playwright.async_api import async_playwright

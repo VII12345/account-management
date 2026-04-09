@@ -1,3 +1,10 @@
+"""
+YouTube 观看策略实现模块。
+
+职责：执行视频观看流程，控制进入目标视频、观看时长与进度行为。
+边界：仅覆盖观看链路，不包含登录、搜索与互动聚合逻辑。
+"""
+
 from ..base import BaseStrategy
 import random
 import asyncio

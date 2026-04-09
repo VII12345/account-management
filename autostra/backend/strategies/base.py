@@ -1,3 +1,10 @@
+"""
+策略抽象基类模块。
+
+职责：定义策略生命周期与标准接口，约束各平台策略的实现形态。
+边界：不包含具体平台细节，仅提供共性契约与复用基础能力。
+"""
+
 # backend/strategies/base.py
 from playwright.async_api import Page
 from typing import Dict, Any, List

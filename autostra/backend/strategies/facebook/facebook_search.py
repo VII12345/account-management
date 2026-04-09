@@ -1,3 +1,10 @@
+"""
+Facebook 搜索策略实现模块。
+
+职责：实现 Facebook 搜索动作链路，包括关键词输入、结果定位与后续返回。
+边界：仅处理搜索流程，不负责点赞、评论或发布动作。
+"""
+
 from ..base import BaseStrategy
 import asyncio
 
